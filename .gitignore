@@ -1,0 +1,9 @@
+node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
+.chrome-catalogo/
+output/
+data/
+data-demo/
+.env
+*.log

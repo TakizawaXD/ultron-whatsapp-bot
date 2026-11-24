@@ -1,0 +1,20 @@
+{
+  "name": "ultron-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "Ultron: asesor comercial con IA para WhatsApp (TAKER). Responde a no-contactos, vende, ofrece demos y tiene panel web.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "catalogo": "node src/generar-catalogo.js",
+    "test": "node src/test-flujo.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "ffmpeg-static": "^5.3.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#38eb45b2759450cc6fccb6a7a3f2cbc3bdb87db2"
+  },
+  "private": true
+}

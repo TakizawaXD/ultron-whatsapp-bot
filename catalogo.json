@@ -1,0 +1,116 @@
+[
+  {
+    "id": "web",
+    "nombre": "Páginas web",
+    "descripcion": "",
+    "precioDesde": 400000,
+    "tiempo": "5 a 10 días",
+    "incluye": [
+      "Diseño moderno y adaptable a móviles",
+      "Secciones personalizadas",
+      "Formulario de contacto o WhatsApp",
+      "Publicación y configuración del sitio"
+    ]
+  },
+  {
+    "id": "tienda",
+    "nombre": "Tiendas online",
+    "descripcion": "",
+    "precioDesde": 800000,
+    "tiempo": "10 a 20 días",
+    "incluye": [
+      "Catálogo de productos",
+      "Carrito de compras",
+      "Gestión de productos",
+      "Integración de medios de contacto y pedidos"
+    ]
+  },
+  {
+    "id": "app",
+    "nombre": "Aplicaciones móviles",
+    "descripcion": "",
+    "precioDesde": 1200000,
+    "tiempo": "20 a 35 días",
+    "incluye": [
+      "Diseño de interfaz",
+      "Desarrollo multiplataforma",
+      "Integración con bases de datos",
+      "Funcionalidades personalizadas"
+    ]
+  },
+  {
+    "id": "sistema",
+    "nombre": "Sistemas a medida",
+    "descripcion": "",
+    "precioDesde": 700000,
+    "tiempo": "15 a 30 días",
+    "incluye": [
+      "Panel administrativo",
+      "Gestión de usuarios y permisos",
+      "Bases de datos",
+      "Automatización de procesos"
+    ]
+  },
+  {
+    "id": "bot",
+    "nombre": "Bots y chatbots",
+    "descripcion": "",
+    "precioDesde": 600000,
+    "tiempo": "7 a 15 días",
+    "incluye": [
+      "Chatbots personalizados",
+      "Automatización de respuestas",
+      "Integración con inteligencia artificial",
+      "Gestión de consultas y clientes"
+    ]
+  },
+  {
+    "id": "soporte",
+    "nombre": "Mantenimiento y soporte",
+    "descripcion": "",
+    "precioDesde": 100000,
+    "tiempo": "Según el requerimiento",
+    "incluye": [
+      "Corrección de errores",
+      "Actualizaciones",
+      "Optimización",
+      "Soporte técnico"
+    ]
+  },
+  {
+    "id": "whatsapp",
+    "nombre": "Chatbot para WhatsApp",
+    "adicional": true,
+    "descripcion": "",
+    "precioDesde": 800000,
+    "tiempo": "",
+    "incluye": []
+  },
+  {
+    "id": "api",
+    "nombre": "Desarrollo de API y backend",
+    "adicional": true,
+    "descripcion": "",
+    "precioDesde": 500000,
+    "tiempo": "",
+    "incluye": []
+  },
+  {
+    "id": "automatizaciones",
+    "nombre": "Automatizaciones",
+    "adicional": true,
+    "descripcion": "",
+    "precioDesde": 600000,
+    "tiempo": "",
+    "incluye": []
+  },
+  {
+    "id": "ia",
+    "nombre": "Integración de inteligencia artificial",
+    "adicional": true,
+    "descripcion": "",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": []
+  }
+]

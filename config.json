@@ -1,0 +1,44 @@
+{
+  "asistente": "Ultron",
+  "motor": "huggingface",
+  "modeloHF": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "ventas": {
+    "pagos": "50% de anticipo para iniciar el proyecto y 50% al entregarlo.",
+    "descuentoMaximo": 10,
+    "demoDias": 7
+  },
+  "promocion": "",
+  "seguimientosHoras": [
+    24,
+    72
+  ],
+  "horarioSeguimientos": [
+    8,
+    20
+  ],
+  "audios": {
+    "activo": false,
+    "modo": "audio_y_texto",
+    "voz": "Raul",
+    "velocidad": 1.05,
+    "enPruebas": false
+  },
+  "dueno": "un asesor de TAKER",
+  "negocio": "TAKER | Desarrollo de Software e Inteligencia Artificial",
+  "marca": "TAKER",
+  "eslogan": "Transformamos ideas en soluciones digitales.",
+  "moneda": "COP",
+  "horario": "Lunes a viernes, 9:00 a. m. - 6:00 p. m.",
+  "bienvenida": "¡Hola! Soy *Ultron*, el asistente virtual de *TAKER*.\n\nSomos un equipo enfocado en desarrollo de software, inteligencia artificial y automatización de procesos.\n\nPodemos ayudarte a crear páginas web, tiendas online, sistemas personalizados y chatbots.\n\nCuéntanos qué proyecto tienes en mente y con gusto te asesoraremos.\n\n🕘 Horario de atención: Lunes a viernes, de 9:00 a. m. a 6:00 p. m.",
+  "contacto": {
+    "email": "andresmontalvo.dev@gmail.com",
+    "web": "https://andresmontalvo.vercel.app",
+    "github": "https://github.com/TakizawaXD",
+    "linkedin": ""
+  },
+  "pausaTrasRespuestaManualHoras": 12,
+  "reinicioConversacionMinutos": 120,
+  "puertoPanel": 3000,
+  "probarConmigo": true,
+  "numerosIgnorados": []
+}

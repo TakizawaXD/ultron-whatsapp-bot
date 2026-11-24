@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ULTRON · TAKER</title>
+<link rel="icon" href="/logo.webp">
+<style>
+  :root{
+    /* Identidad TAKER: azul #00AEEF, cian #00E5FF, fondo #05070B */
+    --bg:#05070B;--panel:#0B1220;--panel2:#111c2e;--borde:#1a2a42;--texto:#FFFFFF;--suave:#9fb3c8;--tenue:#5d7189;
+    --marca:#00AEEF;--cian:#00E5FF;
+    --verde:#22c55e;--verde-bg:rgba(34,197,94,.12);--ambar:#f59e0b;--ambar-bg:rgba(245,158,11,.12);
+    --rojo:#ef4444;--rojo-bg:rgba(239,68,68,.12);--azul:#00E5FF;--azul-bg:rgba(0,229,255,.10);
+    --r:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.5 'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--texto);min-height:100vh}
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer;border:1px solid var(--borde);background:var(--panel2);border-radius:8px;padding:7px 14px;transition:background .15s,border-color .15s}
+  button:hover{border-color:var(--suave)}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
+  button.prim{background:var(--marca);border-color:var(--marca);color:#00131c;font-weight:600}
+  button.prim:hover{filter:brightness(1.08)}
+  button.peligro{color:var(--rojo);border-color:rgba(239,68,68,.4)}
+  a{color:inherit;text-decoration:none}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  select.campo{width:100%;background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:8px 10px}
+  input,textarea{background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:8px 10px;width:100%}
+  textarea{resize:vertical}
+  label{display:block;font-size:12px;color:var(--suave);margin-bottom:4px}
+
+  header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--borde);background:var(--panel);position:sticky;top:0;z-index:5}
+  header h1{font-size:17px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:12px}
+  header h1 small{font-weight:400;color:var(--suave);letter-spacing:0;font-size:13px}
+  .logo{width:40px;height:40px;border-radius:10px;background:url(/logo.webp) 52% 22%/250% no-repeat #05070B;box-shadow:0 0 0 1px rgba(0,229,255,.3),0 0 18px rgba(0,174,239,.35)}
+  header{box-shadow:0 1px 0 rgba(0,229,255,.08)}
+  .cuenta{color:var(--suave);font-size:13px}
+  .esp{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+  .p-verde{color:var(--verde);background:var(--verde-bg)} .p-ambar{color:var(--ambar);background:var(--ambar-bg)}
+  .p-rojo{color:var(--rojo);background:var(--rojo-bg)} .p-azul{color:var(--azul);background:var(--azul-bg)}
+  .p-gris{color:var(--suave);background:rgba(148,163,184,.12)}
+
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:600}
+  .switch input{display:none}
+  .switch .riel{width:46px;height:26px;border-radius:999px;background:var(--borde);position:relative;transition:background .2s}
+  .switch .riel::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+  .switch input:checked + .riel{background:var(--verde)}
+  .switch input:checked + .riel::after{transform:translateX(20px)}
+
+  main{padding:20px 24px;max-width:1400px;margin:0 auto}
+  .aviso{display:none;background:var(--ambar-bg);border:1px solid rgba(245,158,11,.35);color:#fde68a;border-radius:var(--r);padding:12px 16px;margin-bottom:16px}
+  .qr{display:none;background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:24px;margin-bottom:20px;gap:24px;align-items:center}
+  .qr img{background:#fff;border-radius:8px;padding:8px;width:240px;height:240px}
+  .qr ol{margin:10px 0 0 18px;color:var(--suave)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .stat{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px 18px}
+  .stat .n{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat .l{color:var(--suave);font-size:12px}
+  .barras{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:8px}
+  .barras i{flex:1;background:var(--marca);opacity:.55;border-radius:2px 2px 0 0;min-height:2px}
+  .barras i:last-child{opacity:1}
+
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--borde);margin-bottom:16px}
+  .tabs button{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;color:var(--suave)}
+  .tabs button.on{color:var(--texto);border-bottom-color:var(--marca)}
+  .tab{display:none}.tab.on{display:block}
+
+  .chats{display:grid;grid-template-columns:340px 1fr;gap:16px;height:calc(100vh - 330px);min-height:440px}
+  .lista,.detalle{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+  .lista .buscar{padding:10px;border-bottom:1px solid var(--borde);display:grid;gap:8px}
+  .seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--borde);border-radius:9px;padding:3px}
+  .seg button{flex:1;font-size:12.5px;padding:5px 8px;border:none;background:none;color:var(--suave);border-radius:6px}
+  .seg button.on{background:var(--marca);color:#00131c;font-weight:600}
+  .tags{display:flex;gap:6px;align-items:center;justify-content:flex-end;font-size:12px;color:var(--tenue)}
+  .nl{background:var(--marca);color:#00131c;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
+  .b .autor{font-size:11.5px;font-weight:600;color:var(--cian);margin-bottom:2px}
+  .modo{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--suave);margin:0}
+  .modo select{background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:6px 8px;color:var(--texto)}
+  .modo select.siempre{border-color:var(--marca)} .modo select.nunca{border-color:var(--rojo)}
+  .sim{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;height:520px;max-width:900px;margin-bottom:24px}
+  .sim-cab{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--borde);flex-wrap:wrap}
+  .sim-cab .cuenta{flex:1;font-size:12.5px}
+  .tabla-env{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:auto}
+  .tabla{width:100%;border-collapse:collapse;font-size:13px}
+  .tabla th{text-align:left;color:var(--suave);font-weight:600;font-size:12px;padding:10px 12px;border-bottom:1px solid var(--borde);white-space:nowrap}
+  .tabla td{padding:10px 12px;border-bottom:1px solid var(--borde);vertical-align:top}
+  .tabla tr:last-child td{border-bottom:none}
+  .tabla .acc{display:flex;gap:6px;flex-wrap:wrap}
+  .tabla button{padding:4px 10px;font-size:12px}
+  .ficha{border-bottom:1px solid var(--borde);padding:10px 18px;font-size:12.5px;display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;background:var(--panel2)}
+  .ficha b{color:var(--suave);font-weight:600}
+  h3.sub{font-size:14px;margin:6px 0 6px;color:var(--suave);font-weight:600}
+  .seccion{grid-column:1/-1;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--cian);border-top:1px solid var(--borde);padding-top:14px;margin-top:4px}
+  .seccion:first-child{border-top:none;padding-top:0;margin-top:0}
+  .previas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;max-width:1200px}
+  .previa{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px}
+  .previa h3{font-size:13px;color:var(--cian);font-weight:600}
+  .previa .cli{align-self:flex-start;background:var(--panel2);padding:6px 10px;border-radius:10px;font-size:13px}
+  .previa .b{max-width:100%}
+  .lista ul{list-style:none;overflow-y:auto;flex:1}
+  .lista li{padding:12px 14px;border-bottom:1px solid var(--borde);cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 8px}
+  .lista li:hover{background:var(--panel2)} .lista li.sel{background:var(--panel2);box-shadow:inset 3px 0 var(--marca)}
+  .lista .nom{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lista .hora{color:var(--tenue);font-size:12px}
+  .lista .ult{color:var(--suave);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vacio{color:var(--tenue);text-align:center;padding:40px 20px}
+
+  .det-cab{padding:14px 18px;border-bottom:1px solid var(--borde);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .det-cab .nom{font-weight:600;font-size:16px}
+  .det-cab .acc{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+  .b{max-width:72%;padding:8px 12px;border-radius:10px;white-space:pre-wrap;word-wrap:break-word;font-size:13.5px}
+  .b small{display:block;font-size:11px;color:var(--tenue);margin-top:3px}
+  .b.cliente{align-self:flex-start;background:var(--panel2);border-top-left-radius:2px}
+  .b.bot{align-self:flex-end;background:#08324a;border-top-right-radius:2px}
+  .b.tu{align-self:flex-end;background:#1b2f4d;border-top-right-radius:2px}
+  .b .quien{font-size:11px;font-weight:600;color:var(--suave);margin-bottom:2px}
+  .enviar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--borde)}
+  .enviar textarea{height:42px;min-height:42px}
+
+  .servicios{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .serv{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px;display:grid;gap:10px}
+  .serv .fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .barra-acc{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;align-items:center}
+  .preview{margin-top:20px;background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px}
+  .preview img{max-width:100%;border-radius:8px;display:block;margin-top:10px}
+
+  .form{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px}
+  .form .full{grid-column:1/-1}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--texto);font-size:14px}
+  .chk input{width:auto}
+  .zona-peligro{max-width:900px;margin-top:20px;border:1px solid rgba(239,68,68,.35);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:16px}
+  .zona-peligro p{flex:1;color:var(--suave)}
+
+  .logs{background:#05080f;border:1px solid var(--borde);border-radius:var(--r);padding:14px;font:12.5px/1.6 Consolas,monospace;height:calc(100vh - 330px);min-height:400px;overflow-y:auto}
+  .logs div{white-space:pre-wrap} .logs time{color:var(--tenue);margin-right:8px}
+
+  #toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--borde);border-radius:10px;padding:10px 16px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:20}
+  #toast.on{opacity:1;transform:none} #toast.err{border-color:var(--rojo);color:#fecaca}
+
+  @media (max-width:900px){header{flex-wrap:wrap;padding:12px 16px;gap:10px}header h1 small{display:none}main{padding:16px}.stats{grid-template-columns:1fr 1fr}.chats{grid-template-columns:1fr;height:auto}.lista{max-height:300px}.detalle{min-height:500px}.form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="logo" role="img" aria-label="TAKER"></span>ULTRON <small>Asesor comercial de TAKER · WhatsApp</small><span id="iaPill" class="pill p-gris" style="letter-spacing:0">IA sin configurar</span></h1>
+  <span id="conexion" class="pill p-gris">Iniciando</span>
+  <span id="cuenta" class="cuenta"></span>
+  <span class="esp"></span>
+  <label class="switch" title="Encender o apagar las respuestas automáticas">
+    <span id="lblActivo">Bot activo</span>
+    <input type="checkbox" id="activo"><span class="riel"></span>
+  </label>
+</header>
+
+<main>
+  <div id="avisoApagado" class="aviso">⏸️ El bot está <b>apagado</b>: los mensajes se registran pero nadie recibe respuesta automática.</div>
+
+  <section id="qr" class="qr">
+    <img id="qrImg" alt="Código QR para vincular WhatsApp">
+    <div>
+      <h2>Vincula tu WhatsApp</h2>
+      <ol>
+        <li>Abre WhatsApp en tu celular</li>
+        <li>Menú ⋮ → <b>Dispositivos vinculados</b> → <b>Vincular dispositivo</b></li>
+        <li>Escanea este código</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="n" id="sMensajes">0</div><div class="l">Mensajes recibidos hoy</div><div class="barras" id="barras"></div></div>
+    <div class="stat"><div class="n" id="sNuevos">0</div><div class="l">Personas nuevas hoy</div></div>
+    <div class="stat"><div class="n" id="sCotiz">0</div><div class="l">Cotizaciones / quieren hablar contigo hoy</div></div>
+    <div class="stat"><div class="n" id="sPausa">0</div><div class="l">Chats esperando tu respuesta</div></div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="on" data-tab="tChats">Conversaciones</button>
+    <button data-tab="tClientes">Clientes y demos</button>
+    <button data-tab="tRespuestas">Respuestas del bot</button>
+    <button data-tab="tCatalogo">Catálogo</button>
+    <button data-tab="tConfig">Configuración</button>
+    <button data-tab="tLogs">Registro</button>
+  </nav>
+
+  <!-- CONVERSACIONES -->
+  <section id="tChats" class="tab on">
+    <div class="chats">
+      <div class="lista">
+        <div class="buscar"><div class="seg"><button type="button" data-modo="todos" class="on">Todos mis chats</button><button type="button" data-modo="bot">Atendidos por el bot</button></div><input id="buscar" placeholder="Buscar por nombre o número…" aria-label="Buscar conversación"></div>
+        <ul id="listaChats"></ul>
+      </div>
+      <div class="detalle" id="detalle"><div class="vacio">Selecciona una conversación</div></div>
+    </div>
+  </section>
+
+  <!-- CLIENTES Y DEMOS -->
+  <section id="tClientes" class="tab">
+    <p class="cuenta" style="margin-bottom:14px">Clientes con los que habló Ultron, los datos que recogió y sus demos. Cuando envíes una demo, márcala <b>Entregada</b>: ahí empiezan a contar los días y, al vencer, Ultron le escribe para cerrar la venta.</p>
+    <div class="tabla-env"><table class="tabla" id="tablaClientes"></table></div>
+  </section>
+
+  <!-- RESPUESTAS DEL BOT -->
+  <section id="tRespuestas" class="tab">
+    <div class="sim">
+      <div class="sim-cab"><b>🤖 Probar a Ultron</b><span class="cuenta">Escríbele como si fueras un cliente. Usa la IA real (consume tu saldo de Anthropic), pero no envía nada por WhatsApp.</span><button type="button" id="simReset">Nueva conversación</button></div>
+      <div class="msgs" id="simMsgs"><div class="vacio">Escribe "Hola" para empezar.</div></div>
+      <form class="enviar" id="simForm"><textarea placeholder="Mensaje del cliente…" aria-label="Mensaje de prueba"></textarea><button class="prim">Enviar</button></form>
+    </div>
+    <h3 class="sub">Respuestas del menú clásico (se usan si Ultron no está disponible)</h3>
+    <p class="cuenta" style="margin-bottom:14px">Si la IA falla o no hay API key, el bot responde con este menú. Los textos se cambian en <b>Configuración</b> y en <b>Catálogo</b>.</p>
+    <div class="previas" id="previas"></div>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <section id="tCatalogo" class="tab">
+    <div class="barra-acc">
+      <button class="prim" id="guardarCat">💾 Guardar y regenerar catálogo</button>
+      <button id="agregarServ">＋ Agregar servicio</button>
+      <span class="esp"></span>
+      <a href="/catalogo.pdf" target="_blank"><button>📄 Ver PDF</button></a>
+    </div>
+    <div class="servicios" id="servicios"></div>
+    <div class="preview"><b>Vista previa (lo que reciben tus clientes)</b><img id="prevCat" alt="Vista previa del catálogo"></div>
+  </section>
+
+  <!-- CONFIG -->
+  <section id="tConfig" class="tab">
+    <form class="form" id="formClave" autocomplete="off">
+      <div class="seccion">Inteligencia artificial de Ultron</div>
+      <div class="full cuenta" id="claveEstado">Verificando…</div>
+      <div class="full"><label for="c_hf">Token de Hugging Face <span id="okHF"></span> — créalo en huggingface.co → Settings → Access Tokens (tipo "Read" con permiso de Inference Providers)</label><input id="c_hf" type="password" placeholder="hf_…" autocomplete="off" spellcheck="false" data-proveedor="huggingface"></div>
+      <div class="full"><label for="c_clave">API key de Anthropic (opcional, para usar Claude) <span id="okClaude"></span></label><input id="c_clave" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" data-proveedor="claude"></div>
+      <div class="full cuenta">Las claves se guardan solo en este equipo (data/secretos.json) y nunca se vuelven a mostrar.</div>
+      <div class="full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="prim" type="submit">🔑 Guardar y verificar</button><button type="button" class="peligro" data-borrar="huggingface">Quitar token HF</button><button type="button" class="peligro" data-borrar="claude">Quitar key Anthropic</button></div>
+    </form>
+    <div style="height:16px"></div>
+    <form class="form" id="formConfig">
+      <div class="seccion">Ultron</div>
+      <div><label for="c_motor">Cómo responde el bot</label><select id="c_motor" name="motor" class="campo"><option value="huggingface">Ultron con IA de Hugging Face</option><option value="ia">Ultron con Claude (Anthropic)</option><option value="menu">Menú clásico (sin IA)</option></select></div>
+      <div class="full"><label for="c_modeloHF">Modelo de Hugging Face</label><select id="c_modeloHF" name="modeloHF" class="campo">
+        <option value="deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek V4.1 Flash — rápido y económico (recomendado)</option>
+        <option value="Qwen/Qwen3.8-27B">Qwen 3.8 27B — muy bueno en español</option>
+        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B — Meta</option>
+        <option value="google/gemma-4-31B-it">Gemma 4 31B — Google</option>
+        <option value="openai/gpt-oss-120b">GPT-OSS 120B — OpenAI (abierto)</option>
+        <option value="zai-org/GLM-5.3">GLM 5.3 — más capaz, más costoso</option>
+      </select></div>
+      <div><label for="c_asistente">Nombre del asistente</label><input id="c_asistente" name="asistente"></div>
+      <div class="full"><label for="c_promo">Promoción vigente que Ultron puede ofrecer (déjalo vacío si no hay; Ultron nunca inventa descuentos)</label><textarea id="c_promo" name="promocion" rows="2" placeholder="Ej.: 10% de descuento en páginas web pagando el anticipo antes del 31 de diciembre de 2026"></textarea></div>
+      <div><label for="c_seg">Seguimientos si el cliente deja de responder (horas, separadas por coma; vacío = ninguno)</label><input id="c_seg" name="seguimientosHoras" placeholder="24, 72"></div>
+      <div class="cuenta" style="align-self:end">Solo entre 8:00 a. m. y 8:00 p. m., nunca a quien pidió no recibir mensajes.</div>
+
+      <div class="seccion">Ventas</div>
+      <div class="full"><label for="c_pagos">Forma de pago que Ultron comunica</label><input id="c_pagos" name="ventas.pagos"></div>
+      <div><label for="c_desc">Descuento máximo que Ultron puede SOLICITAR (%; tú lo confirmas; 0 = ninguno)</label><input id="c_desc" name="ventas.descuentoMaximo" type="number" min="0" max="50"></div>
+      <div><label for="c_dias">Días de la demo gratuita (cuentan desde que la marcas entregada)</label><input id="c_dias" name="ventas.demoDias" type="number" min="1" max="30"></div>
+
+      <div class="seccion">Notas de voz</div>
+      <div class="full"><label class="chk"><input type="checkbox" name="audios.activo"> Ultron envía notas de voz a los chats marcados <b>"Sí, responder siempre"</b></label></div>
+      <div><label for="c_amodo">Qué envía</label><select id="c_amodo" name="audios.modo" class="campo"><option value="audio_y_texto">Nota de voz + el mismo texto escrito</option><option value="solo_audio">Solo nota de voz</option></select></div>
+      <div><label for="c_avoz">Voz</label><select id="c_avoz" name="audios.voz" class="campo"><option value="Raul">Raúl (hombre, México)</option><option value="Sabina">Sabina (mujer, México)</option></select></div>
+      <div><label for="c_avel">Velocidad (1 = normal)</label><input id="c_avel" name="audios.velocidad" type="number" min="0.7" max="1.6" step="0.05"></div>
+      <div><label class="chk" style="margin-top:22px"><input type="checkbox" name="audios.enPruebas"> También en mi chat de prueba</label></div>
+
+      <div class="seccion">Negocio</div>
+      <div><label for="c_dueno">Quién atiende (en "Ya le avisamos a …")</label><input id="c_dueno" name="dueno"></div>
+      <div><label for="c_negocio">Nombre del negocio</label><input id="c_negocio" name="negocio"></div>
+      <div class="full"><label for="c_eslogan">Eslogan</label><input id="c_eslogan" name="eslogan"></div>
+      <div><label for="c_horario">Horario</label><input id="c_horario" name="horario"></div>
+      <div><label for="c_moneda">Moneda</label><input id="c_moneda" name="moneda"></div>
+      <div><label for="c_email">Email</label><input id="c_email" name="contacto.email"></div>
+      <div><label for="c_web">Web</label><input id="c_web" name="contacto.web"></div>
+      <div><label for="c_github">GitHub</label><input id="c_github" name="contacto.github"></div>
+      <div><label for="c_linkedin">LinkedIn</label><input id="c_linkedin" name="contacto.linkedin" placeholder="Pendiente"></div>
+      <div class="full"><label for="c_bienv">Mensaje de bienvenida (primer mensaje que recibe un cliente; *texto* = negrita)</label><textarea id="c_bienv" name="bienvenida" rows="8"></textarea></div>
+      <div><label for="c_pausa">Horas de pausa cuando respondes tú</label><input id="c_pausa" name="pausaTrasRespuestaManualHoras" type="number" min="0.1" step="0.5"></div>
+      <div><label for="c_reinicio">Minutos sin hablar para volver a mostrar el menú</label><input id="c_reinicio" name="reinicioConversacionMinutos" type="number" min="1"></div>
+      <div class="full"><label for="c_ign">Números que el bot nunca debe contestar (uno por línea, con código de país)</label><textarea id="c_ign" name="numerosIgnorados" rows="3" placeholder="573001234567"></textarea></div>
+      <div class="full"><label class="chk"><input type="checkbox" name="probarConmigo"> Modo prueba: el bot me responde cuando me escribo a mí mismo (mi propio chat). Funciona aunque el bot esté apagado.</label></div>
+      <div class="full cuenta">El bot solo responde en chats privados; en grupos nunca habla. Para elegir persona por persona, abre el chat en <b>Conversaciones</b> y cambia <b>Respuesta automática</b>.</div>
+      <div class="full"><button class="prim" type="submit">💾 Guardar configuración</button></div>
+    </form>
+    <div class="zona-peligro">
+      <p><b>Cerrar sesión de WhatsApp.</b> Desvincula este equipo; tendrás que escanear el QR otra vez.</p>
+      <button class="peligro" id="logout">Cerrar sesión</button>
+    </div>
+  </section>
+
+  <!-- LOGS -->
+  <section id="tLogs" class="tab"><div class="logs" id="logs"></div></section>
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const fmtWa = (s) => esc(s).replace(/\*([^*\n]+)\*/g, '<b>$1</b>').replace(/(^|\s)_([^_\n]+)_(?=\s|$)/g, '$1<i>$2</i>');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+let estado = null, chatSel = null, catalogo = [], forzarAbajo = false;
+let modo = 'todos', waChats = null, waError = null, waCargando = false, waDet = null;
+
+async function api(ruta, metodo = 'GET', cuerpo) {
+  const r = await fetch(ruta, { method: metodo, headers: { 'Content-Type': 'application/json', 'X-Panel': '1' }, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Error ' + r.status);
+  return d;
+}
+function toast(txt, err) {
+  const t = $('#toast'); t.textContent = txt; t.className = 'on' + (err ? ' err' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 2800);
+}
+async function accion(fn, okTxt) { try { await fn(); if (okTxt) toast(okTxt); } catch (e) { toast('❌ ' + e.message, true); } }
+
+const hora = (t) => {
+  const d = new Date(t), hoy = new Date();
+  return d.toDateString() === hoy.toDateString() ? d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('es', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+};
+const restante = (t) => { const m = Math.round((t - Date.now()) / 60000); return m >= 60 ? Math.round(m / 60) + ' h' : m + ' min'; };
+const ESTADOS = { ultron: 'Conversando con Ultron', menu: 'En menú', precios: 'Viendo precios', servicio: 'Viendo servicio', cotizacion: 'Escribiendo cotización', cotizacion_enviada: 'Pidió cotización', humano: 'Quiere hablar contigo' };
+function badgeChat(c) {
+  if (c.pausadoHasta) {
+    const urg = c.estado === 'humano' || c.estado === 'cotizacion_enviada';
+    return `<span class="pill ${urg ? 'p-ambar' : 'p-azul'}">${urg ? esc(ESTADOS[c.estado]) : 'Pausado'} · ${restante(c.pausadoHasta)}</span>`;
+  }
+  return `<span class="pill p-azul">${esc(ESTADOS[c.estado] || 'Bot atendiendo')}</span>`;
+}
+
+// ---------- Render ----------
+function render() {
+  const e = estado;
+  const CONX = { conectado: ['Conectado', 'p-verde'], qr: ['Esperando QR', 'p-ambar'], cargando: ['Cargando…', 'p-azul'], autenticado: ['Autenticado…', 'p-azul'], iniciando: ['Iniciando…', 'p-gris'], desconectado: ['Desconectado', 'p-rojo'], error: ['Error', 'p-rojo'] };
+  const [txt, cls] = CONX[e.conexion] || [e.conexion, 'p-gris'];
+  $('#conexion').textContent = txt; $('#conexion').className = 'pill ' + cls;
+  $('#cuenta').textContent = e.cuenta ? `${e.cuenta.nombre} · +${e.cuenta.numero}` : '';
+  $('#activo').checked = e.activo;
+  $('#lblActivo').textContent = e.activo ? 'Bot activo' : 'Bot apagado';
+  $('#avisoApagado').style.display = e.activo ? 'none' : 'block';
+  $('#qr').style.display = e.qr ? 'flex' : 'none';
+  if (e.qr) $('#qrImg').src = e.qr;
+
+  const h = e.stats.hoy;
+  $('#sMensajes').textContent = h.mensajes || 0;
+  $('#sNuevos').textContent = h.nuevos || 0;
+  $('#sCotiz').textContent = (h.cotizaciones || 0) + (h.humano || 0);
+  $('#sPausa').textContent = e.chats.filter((c) => c.pausadoHasta && (c.estado === 'humano' || c.estado === 'cotizacion_enviada')).length;
+  const dias = [...Array(14)].map((_, i) => { const d = new Date(Date.now() - (13 - i) * 864e5).toISOString().slice(0, 10); return e.stats.dias[d]?.mensajes || 0; });
+  const max = Math.max(1, ...dias);
+  $('#barras').innerHTML = dias.map((n, i) => `<i style="height:${(n / max) * 100}%" title="${n} mensajes"></i>`).join('');
+
+  renderLista(); renderDetalle(); renderLogs(); renderClientes();
+}
+
+// ---------- Respuestas del bot (vista previa) ----------
+async function cargarVistaPrevia() {
+  try {
+    const casos = await api('/api/vista-previa');
+    $('#previas').innerHTML = casos.map((c) => `
+      <div class="previa">
+        <h3>${esc(c.titulo)}</h3>
+        <div class="cli">${esc(c.cliente)}</div>
+        ${c.respuestas.map((r) => `<div class="b bot"><div class="quien">🤖 Respuesta del bot</div>${fmtWa(r)}</div>`).join('')}
+        ${c.pausa ? '<div class="cuenta">⏸️ Después de esto el bot se pausa en ese chat y te avisa.</div>' : ''}
+      </div>`).join('');
+  } catch (e) { $('#previas').innerHTML = `<div class="vacio">${esc(e.message)}</div>`; }
+}
+
+// ---------- Respuesta automática por persona ----------
+const esGrupoId = (id) => String(id).endsWith('@g.us');
+function selectorModo(id) {
+  if (!id || esGrupoId(id)) return '<span class="pill p-gris" title="El bot nunca responde en grupos">Grupo · bot desactivado</span>';
+  const m = estado?.modos?.[id] || 'auto';
+  return `<label class="modo">Respuesta automática
+    <select data-modo-chat class="${m}">
+      <option value="auto" ${m === 'auto' ? 'selected' : ''}>Automática (solo si no es mi contacto)</option>
+      <option value="siempre" ${m === 'siempre' ? 'selected' : ''}>Sí, responder siempre</option>
+      <option value="nunca" ${m === 'nunca' ? 'selected' : ''}>No responder nunca</option>
+    </select></label>`;
+}
+
+// ---------- Todos mis chats (WhatsApp real) ----------
+async function cargarChatsWa() {
+  if (waCargando) return;
+  if (estado?.conexion !== 'conectado') { waChats = null; waError = null; if (modo === 'todos') renderLista(); return; }
+  waCargando = true;
+  try { waChats = await api('/api/whatsapp/chats'); waError = null; }
+  catch (e) { waError = e.message; }
+  finally { waCargando = false; }
+  if (modo === 'todos') renderLista();
+}
+async function cargarMensajesWa(id) {
+  try {
+    const d = await api(`/api/whatsapp/chats/${encodeURIComponent(id)}/mensajes?limite=80`);
+    if (id === chatSel) { waDet = d; renderDetalle(); }
+  } catch (e) { if (id === chatSel) { waDet = { error: e.message }; renderDetalle(); } }
+}
+
+function renderListaWa() {
+  const el = $('#listaChats');
+  if (estado?.conexion !== 'conectado') { el.innerHTML = '<div class="vacio">Conecta tu WhatsApp (escanea el QR de arriba) para ver aquí todos tus chats.</div>'; return; }
+  if (waError && !waChats) { el.innerHTML = `<div class="vacio">No se pudieron cargar los chats: ${esc(waError)}</div>`; return; }
+  if (!waChats) { el.innerHTML = '<div class="vacio">Cargando tus chats…</div>'; return; }
+  const q = $('#buscar').value.toLowerCase().trim();
+  const chats = waChats.filter((c) => !q || (c.nombre || '').toLowerCase().includes(q) || (c.numero || '').includes(q));
+  el.innerHTML = chats.length ? chats.map((c) => {
+    const m = estado?.modos?.[c.id];
+    const tagModo = m === 'siempre' ? '<span title="El bot siempre le responde">✅</span>' : m === 'nunca' ? '<span title="El bot nunca le responde">🚫</span>' : '';
+    return `
+    <li data-id="${esc(c.id)}" class="${c.id === chatSel ? 'sel' : ''}">
+      <span class="nom">${c.fijado ? '📌 ' : ''}${c.esGrupo ? '👥 ' : ''}${esc(c.nombre)}</span><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span>
+      <span class="ult">${c.ultimoDeMi ? 'Tú: ' : ''}${esc((c.ultimoTexto || '').split('\n')[0])}</span>
+      <span class="tags">${tagModo}${c.bot ? '<span title="El bot ha atendido este chat">🤖</span>' : ''}${c.silenciado ? '<span title="Silenciado">🔕</span>' : ''}${c.noLeidos ? `<span class="nl">${c.noLeidos}</span>` : ''}</span>
+    </li>`;
+  }).join('') : `<div class="vacio">${q ? 'Sin resultados' : 'No hay chats.'}</div>`;
+}
+
+function renderDetalleWa() {
+  const det = $('#detalle');
+  if (!chatSel) { det.innerHTML = '<div class="vacio">Selecciona un chat</div>'; return; }
+  const resumen = waChats?.find((x) => x.id === chatSel) || {};
+  const sesion = estado.chats.find((x) => x.id === chatSel);
+  const taPrev = det.querySelector('textarea');
+  const borrador = taPrev?.value || '';
+  const teniaFoco = taPrev && document.activeElement === taPrev;
+  const msgs = det.querySelector('.msgs');
+  const pegadoAbajo = !msgs || forzarAbajo || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40;
+  const nombre = waDet?.nombre || resumen.nombre || '';
+  const numero = waDet?.numero ?? resumen.numero;
+  let cuerpo;
+  if (!waDet) cuerpo = '<div class="vacio">Cargando mensajes…</div>';
+  else if (waDet.error) cuerpo = `<div class="vacio">No se pudieron cargar los mensajes: ${esc(waDet.error)}</div>`;
+  else if (!waDet.mensajes.length) cuerpo = '<div class="vacio">Sin mensajes recientes.</div>';
+  else cuerpo = waDet.mensajes.map((m) => `<div class="b ${m.deMi ? (m.bot ? 'bot' : 'tu') : 'cliente'}">${m.autor ? `<div class="autor">${esc(m.autor)}</div>` : ''}${m.deMi ? `<div class="quien">${m.bot ? '🤖 Respuesta del bot' : '🙋 Tú'}</div>` : ''}${fmtWa(m.texto)}<small>${hora(m.t)}</small></div>`).join('');
+  det.innerHTML = `
+    <div class="det-cab">
+      <div><div class="nom">${esc(nombre)}</div><div class="cuenta">${numero ? '+' + esc(numero) : 'Grupo'}</div></div>
+      ${sesion ? badgeChat(sesion) : ''}
+      <div class="acc">
+        ${selectorModo(chatSel)}
+        ${sesion ? (sesion.pausadoHasta
+          ? `<button data-acc="reanudar">▶️ Reanudar bot</button>`
+          : `<button data-acc="pausar" data-h="1">⏸️ Pausar 1 h</button>`) : ''}
+        ${numero ? `<a href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener"><button>Abrir en WhatsApp</button></a>` : ''}
+      </div>
+    </div>
+    ${fichaHtml(sesion)}
+    <div class="msgs">${cuerpo}</div>
+    <form class="enviar"><textarea placeholder="Escribe un mensaje…${sesion ? ' (el bot se pausará en este chat)' : ''}" aria-label="Mensaje">${esc(borrador)}</textarea><button class="prim">Enviar</button></form>`;
+  const nm = det.querySelector('.msgs');
+  if (pegadoAbajo && waDet) { nm.scrollTop = nm.scrollHeight; forzarAbajo = false; }
+  if (teniaFoco) { const ta = det.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+function renderLista() {
+  if (modo === 'todos') return renderListaWa();
+  const q = $('#buscar').value.toLowerCase().trim();
+  const chats = estado.chats.filter((c) => !q || (c.nombre || '').toLowerCase().includes(q) || c.numero.includes(q));
+  $('#listaChats').innerHTML = chats.length ? chats.map((c) => {
+    const ult = c.historial[c.historial.length - 1];
+    return `<li data-id="${esc(c.id)}" class="${c.id === chatSel ? 'sel' : ''}">
+      <span class="nom">${esc(c.nombre || '+' + c.numero)}</span><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span>
+      <span class="ult">${ult ? (ult.de === 'cliente' ? '' : ult.de === 'bot' ? '🤖 ' : 'Tú: ') + esc(ult.texto.split('\n')[0]) : ''}</span>
+      <span>${badgeChat(c)}</span></li>`;
+  }).join('') : `<div class="vacio">${q ? 'Sin resultados' : 'Aún no te ha escrito nadie que no sea tu contacto.'}</div>`;
+}
+
+function renderDetalle() {
+  if (modo === 'todos') return renderDetalleWa();
+  const c = estado.chats.find((x) => x.id === chatSel);
+  const det = $('#detalle');
+  if (!c) { det.innerHTML = '<div class="vacio">Selecciona una conversación</div>'; return; }
+  const taPrev = det.querySelector('textarea');
+  const borrador = taPrev?.value || '';
+  const teniaFoco = taPrev && document.activeElement === taPrev;
+  const msgs = det.querySelector('.msgs');
+  const pegadoAbajo = !msgs || forzarAbajo || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40;
+  det.innerHTML = `
+    <div class="det-cab">
+      <div><div class="nom">${esc(c.nombre || '+' + c.numero)}</div><div class="cuenta">+${esc(c.numero)}</div></div>
+      ${badgeChat(c)}
+      <div class="acc">
+        ${selectorModo(c.id)}
+        ${c.pausadoHasta
+          ? `<button data-acc="reanudar">▶️ Reanudar bot</button>`
+          : `<button data-acc="pausar" data-h="1">⏸️ Pausar 1 h</button><button data-acc="pausar" data-h="24">⏸️ 24 h</button>`}
+        <a href="https://wa.me/${esc(c.numero)}" target="_blank" rel="noopener"><button>Abrir en WhatsApp</button></a>
+        <button class="peligro" data-acc="reiniciar" title="Borra el historial del panel; si vuelve a escribir, verá el menú">🗑️</button>
+      </div>
+    </div>
+    ${fichaHtml(c)}
+    <div class="msgs">${c.historial.map((m) => `<div class="b ${m.de}"><div class="quien">${m.de === 'cliente' ? esc(c.nombre || 'Cliente') : m.de === 'bot' ? '🤖 Respuesta del bot' : '🙋 Tú'}</div>${fmtWa(m.texto)}<small>${hora(m.t)}</small></div>`).join('')}</div>
+    <form class="enviar"><textarea placeholder="Escribe una respuesta… (el bot se pausará en este chat)" aria-label="Mensaje">${esc(borrador)}</textarea><button class="prim">Enviar</button></form>`;
+  const nm = det.querySelector('.msgs');
+  if (pegadoAbajo) nm.scrollTop = nm.scrollHeight;
+  forzarAbajo = false;
+  if (teniaFoco) { const ta = det.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+function renderLogs() {
+  const el = $('#logs');
+  const abajo = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  el.innerHTML = estado.logs.map((l) => `<div><time>${new Date(l.t).toLocaleTimeString('es')}</time>${esc(l.texto)}</div>`).join('');
+  if (abajo) el.scrollTop = el.scrollHeight;
+}
+
+// ---------- Catálogo ----------
+function renderCatalogo() {
+  $('#servicios').innerHTML = catalogo.map((s, i) => `
+    <div class="serv" data-i="${i}">
+      <div><label>Nombre</label><input data-k="nombre" value="${esc(s.nombre)}"></div>
+      <div><label>Descripción</label><textarea data-k="descripcion" rows="3">${esc(s.descripcion)}</textarea></div>
+      <div class="fila">
+        <div><label>Precio desde</label><input data-k="precioDesde" type="number" min="0" value="${esc(s.precioDesde)}"></div>
+        <div><label>Tiempo</label><input data-k="tiempo" value="${esc(s.tiempo)}"></div>
+      </div>
+      <div><label>Incluye (uno por línea)</label><textarea data-k="incluye" rows="4">${esc((s.incluye || []).join('\n'))}</textarea></div>
+      <div class="fila"><label class="chk"><input type="checkbox" data-k="adicional" ${s.adicional ? 'checked' : ''}> Servicio adicional (lista corta)</label><div style="text-align:right"><button class="peligro" data-quitar="${i}">Quitar</button></div></div>
+    </div>`).join('');
+}
+function leerCatalogoForm() {
+  return [...document.querySelectorAll('.serv')].map((el) => {
+    const v = (k) => el.querySelector(`[data-k="${k}"]`).value;
+    const i = +el.dataset.i;
+    return { id: catalogo[i]?.id, nombre: v('nombre'), descripcion: v('descripcion'), precioDesde: Number(v('precioDesde')), tiempo: v('tiempo'), adicional: el.querySelector('[data-k="adicional"]').checked, incluye: v('incluye').split('\n').map((x) => x.trim()).filter(Boolean) };
+  });
+}
+async function cargarCatalogo() { catalogo = await api('/api/catalogo'); renderCatalogo(); $('#prevCat').src = '/catalogo.png?t=' + Date.now(); }
+
+// ---------- Config ----------
+async function cargarConfig() {
+  const c = await api('/api/config');
+  for (const el of $('#formConfig').elements) {
+    if (!el.name) continue;
+    const val = el.name.split('.').reduce((o, k) => o?.[k], c);
+    if (el.type === 'checkbox') el.checked = !!val;
+    else el.value = Array.isArray(val) ? val.join(el.name === 'numerosIgnorados' ? '\n' : ', ') : (val ?? '');
+  }
+}
+
+// ---------- Eventos UI ----------
+document.querySelector('.tabs').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button'); if (!b) return;
+  document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === b.dataset.tab));
+  if (b.dataset.tab === 'tLogs') $('#logs').scrollTop = 1e9;
+  if (b.dataset.tab === 'tRespuestas') cargarVistaPrevia();
+});
+$('#activo').addEventListener('change', (ev) => accion(() => api('/api/control', 'POST', { activo: ev.target.checked }), ev.target.checked ? 'Bot encendido' : 'Bot apagado'));
+$('#buscar').addEventListener('input', renderLista);
+$('#listaChats').addEventListener('click', (ev) => {
+  const li = ev.target.closest('li'); if (!li) return;
+  chatSel = li.dataset.id; renderLista(); $('#detalle').innerHTML = '';
+  if (modo === 'todos') { waDet = null; forzarAbajo = true; cargarMensajesWa(chatSel); }
+  renderDetalle();
+});
+document.querySelector('.seg').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-modo]'); if (!b || b.dataset.modo === modo) return;
+  modo = b.dataset.modo; chatSel = null; waDet = null;
+  document.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
+  $('#detalle').innerHTML = ''; renderLista(); renderDetalle();
+  if (modo === 'todos') cargarChatsWa();
+});
+$('#detalle').addEventListener('change', (ev) => {
+  if (!ev.target.matches('[data-modo-chat]')) return;
+  const valor = ev.target.value;
+  const textos = { auto: 'Automática: responde solo si no es tu contacto', siempre: 'El bot le responderá siempre', nunca: 'El bot no le responderá' };
+  accion(() => api(`/api/chats/${encodeURIComponent(chatSel)}/modo`, 'POST', { modo: valor }), textos[valor]);
+});
+$('#detalle').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-acc]'); if (!b) return;
+  const a = b.dataset.acc, url = `/api/chats/${encodeURIComponent(chatSel)}/${a}`;
+  if (a === 'reiniciar' && !confirm('¿Borrar esta conversación del panel? Si la persona vuelve a escribir, el bot le mostrará el menú.')) return;
+  accion(() => api(url, 'POST', { horas: +b.dataset.h }).then(() => { if (a === 'reiniciar') chatSel = null; }),
+    { pausar: 'Bot pausado en este chat', reanudar: 'El bot volverá a responder aquí', reiniciar: 'Conversación borrada' }[a]);
+});
+$('#detalle').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const ta = ev.target.querySelector('textarea'), texto = ta.value.trim(); if (!texto) return;
+  accion(async () => { forzarAbajo = true; await api(`/api/chats/${encodeURIComponent(chatSel)}/enviar`, 'POST', { texto }); ta.value = ''; if (modo === 'todos') cargarMensajesWa(chatSel); }, 'Mensaje enviado');
+});
+$('#detalle').addEventListener('keydown', (ev) => {
+  if (ev.target.tagName === 'TEXTAREA' && ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); ev.target.form.requestSubmit(); }
+});
+$('#agregarServ').addEventListener('click', () => {
+  catalogo = leerCatalogoForm(); catalogo.push({ nombre: '', descripcion: '', precioDesde: 0, tiempo: '', incluye: [] }); renderCatalogo();
+  document.querySelector('.serv:last-child input').focus();
+});
+$('#servicios').addEventListener('click', (ev) => {
+  const i = ev.target.dataset.quitar; if (i === undefined) return;
+  catalogo = leerCatalogoForm(); catalogo.splice(+i, 1); renderCatalogo();
+});
+$('#guardarCat').addEventListener('click', (ev) => {
+  const b = ev.target; b.disabled = true; b.textContent = 'Generando…';
+  accion(async () => { await api('/api/catalogo', 'PUT', leerCatalogoForm()); await cargarCatalogo(); cargarVistaPrevia(); }, 'Catálogo guardado y regenerado')
+    .finally(() => { b.disabled = false; b.textContent = '💾 Guardar y regenerar catálogo'; });
+});
+$('#formConfig').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const datos = { contacto: {}, audios: {} };
+  for (const el of ev.target.elements) {
+    if (!el.name) continue;
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.name === 'numerosIgnorados') v = v.split(/[\n,]/).map((x) => x.trim()).filter(Boolean);
+    if (el.name.includes('.')) { const [grupo, clave] = el.name.split('.'); (datos[grupo] ||= {})[clave] = v; } else datos[el.name] = v;
+  }
+  accion(async () => { await api('/api/config', 'PUT', datos); await cargarConfig(); cargarVistaPrevia(); estadoUltron(); $('#prevCat').src = '/catalogo.png?t=' + Date.now(); }, 'Configuración guardada');
+});
+$('#logout').addEventListener('click', () => {
+  if (confirm('¿Cerrar la sesión de WhatsApp en este equipo? Tendrás que escanear el QR otra vez.')) accion(() => api('/api/cerrar-sesion', 'POST', {}), 'Sesión cerrada');
+});
+
+// ---------- Datos en vivo ----------
+async function refrescar() {
+  try {
+    const antes = estado?.conexion;
+    estado = await api('/api/estado');
+    render();
+    if (estado.conexion !== antes && modo === 'todos') cargarChatsWa(); // al conectar, cargar los chats
+  } catch { $('#conexion').textContent = 'Panel sin conexión'; $('#conexion').className = 'pill p-rojo'; }
+}
+const fuente = new EventSource('/api/eventos');
+fuente.onmessage = refrescar;
+fuente.addEventListener('wa', (ev) => {
+  if (modo !== 'todos') return;
+  cargarChatsWa();
+  let id = ''; try { id = JSON.parse(ev.data); } catch {}
+  if (chatSel && id === chatSel) cargarMensajesWa(chatSel);
+});
+setInterval(() => estado && render(), 30000); // actualizar "hace X min"
+// ---------- Ultron: API key y simulador ----------
+async function estadoUltron() {
+  try {
+    const e = await api('/api/ultron/estado');
+    const nombreMotor = e.proveedor === 'huggingface' ? `Hugging Face · ${e.modeloHF.split('/').pop()}` : e.proveedor === 'claude' ? `Claude · ${e.modeloClaude}` : 'menú clásico';
+    $('#iaPill').textContent = !e.proveedor ? 'Menú clásico' : e.disponible ? `IA: ${e.proveedor === 'huggingface' ? 'Hugging Face' : 'Claude'}` : 'IA sin configurar';
+    $('#iaPill').className = 'pill ' + (e.disponible ? 'p-verde' : 'p-ambar');
+    $('#okHF').textContent = e.huggingface ? '✅ guardado' : '';
+    $('#okClaude').textContent = e.claude ? '✅ guardada' : '';
+    $('#claveEstado').innerHTML = !e.proveedor ? 'El bot está en <b>menú clásico</b> (sin IA). Cámbialo abajo en "Cómo responde el bot".'
+      : e.disponible ? `✅ Ultron responde con <b>${esc(nombreMotor)}</b>.`
+      : `⚠️ El motor elegido es <b>${esc(nombreMotor)}</b> pero falta su ${e.proveedor === 'huggingface' ? 'token' : 'API key'}: mientras tanto el bot responde con el menú clásico.`;
+  } catch {}
+}
+$('#formClave').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const campos = [...ev.target.querySelectorAll('input[data-proveedor]')].filter((c) => c.value.trim());
+  if (!campos.length) return;
+  const b = ev.target.querySelector('button.prim'); b.disabled = true; b.textContent = 'Verificando…';
+  accion(async () => {
+    for (const c of campos) { await api('/api/ultron/clave', 'POST', { clave: c.value.trim(), proveedor: c.dataset.proveedor }); c.value = ''; }
+    await estadoUltron();
+  }, 'Verificado y guardado').finally(() => { b.disabled = false; b.textContent = '🔑 Guardar y verificar'; });
+});
+$('#formClave').addEventListener('click', (ev) => {
+  const p = ev.target.dataset.borrar; if (!p) return;
+  if (confirm('¿Quitar esta clave? Si es la del motor activo, el bot responderá con el menú clásico.')) accion(async () => { await api('/api/ultron/clave', 'POST', { clave: '', proveedor: p }); await estadoUltron(); }, 'Clave eliminada');
+});
+
+// ---------- Clientes y demos ----------
+const DEMO = { solicitada: ['🛠️ Por preparar', 'p-ambar'], entregada: ['📦 Entregada', 'p-azul'], vencida: ['⌛ Vencida', 'p-rojo'], contrato: ['🎉 Contrató', 'p-verde'], cancelada: ['✖️ Cancelada', 'p-gris'] };
+function demoPill(d) {
+  if (!d) return '<span class="cuenta">—</span>';
+  const [t, cls] = DEMO[d.estado] || [d.estado, 'p-gris'];
+  const extra = d.estado === 'entregada' && d.vence ? ` · vence ${new Date(d.vence).toLocaleDateString('es', { day: '2-digit', month: 'short' })}` : '';
+  return `<span class="pill ${cls}">${t}${extra}</span>`;
+}
+function botonesDemo(c) {
+  const d = c.demo; if (!d) return '';
+  const id = esc(c.id), b = [];
+  if (d.estado === 'solicitada') b.push(`<button data-demo="entregada" data-id="${id}">Marcar entregada</button>`);
+  if (['solicitada', 'entregada', 'vencida'].includes(d.estado)) b.push(`<button class="prim" data-demo="contrato" data-id="${id}">Contrató</button>`, `<button class="peligro" data-demo="cancelar" data-id="${id}">Cancelar</button>`);
+  return b.join('');
+}
+function fichaHtml(c) {
+  if (!c) return '';
+  const f = c.ficha || {};
+  const etiquetas = { nombre: 'Nombre', negocio: 'Negocio', servicio: 'Servicio', necesidad: 'Necesita', presupuesto: 'Presupuesto', fecha: 'Fecha', email: 'Email' };
+  const datos = Object.entries(etiquetas).filter(([k]) => f[k]).map(([k, t]) => `<span><b>${t}:</b> ${esc(f[k])}</span>`);
+  if (c.demo) datos.push(`<span><b>Demo:</b> ${demoPill(c.demo)} ${esc(c.demo.servicio || '')}</span>`, botonesDemo(c));
+  if (c.seguimientoAutorizado) datos.push('<span class="pill p-azul">👍 Autorizó seguimiento</span>');
+  if (c.noSeguir) datos.push('<span class="pill p-gris">🙅 No contactar</span>');
+  return datos.length ? `<div class="ficha">📋 ${datos.join('')}</div>` : '';
+}
+function renderClientes() {
+  const filas = estado.chats.filter((c) => c.ficha || c.demo || c.estado === 'ultron' || c.seguimientoAutorizado);
+  $('#tablaClientes').innerHTML = filas.length ? `
+    <tr><th>Cliente</th><th>Servicio / necesidad</th><th>Presupuesto</th><th>Demo</th><th>Seguimiento</th><th>Último contacto</th><th></th></tr>
+    ${filas.map((c) => `<tr>
+      <td><b>${esc(c.ficha?.nombre || c.nombre || '+' + c.numero)}</b><div class="cuenta">+${esc(c.numero)}${c.ficha?.negocio ? ' · ' + esc(c.ficha.negocio) : ''}${c.ficha?.email ? '<br>' + esc(c.ficha.email) : ''}</div></td>
+      <td>${esc(c.ficha?.servicio || c.demo?.servicio || '—')}<div class="cuenta">${esc(c.ficha?.necesidad || c.demo?.detalles || '')}</div></td>
+      <td>${esc(c.ficha?.presupuesto || '—')}${c.ficha?.fecha ? `<div class="cuenta">Para: ${esc(c.ficha.fecha)}</div>` : ''}</td>
+      <td>${demoPill(c.demo)}</td>
+      <td>${c.noSeguir ? '🙅 No contactar' : c.seguimientoAutorizado ? `👍 Autorizado (${c.seguimientos} enviados)` : '—'}</td>
+      <td>${c.ultimo ? hora(c.ultimo) : ''}</td>
+      <td><div class="acc">${botonesDemo(c)}</div></td>
+    </tr>`).join('')}` : '<tr><td class="vacio">Todavía no hay clientes atendidos por Ultron.</td></tr>';
+}
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-demo]'); if (!b) return;
+  const textos = { entregada: 'Demo entregada: empieza el conteo', contrato: '¡Venta registrada! 🎉', cancelar: 'Demo cancelada' };
+  if (b.dataset.demo === 'cancelar' && !confirm('¿Cancelar esta demo?')) return;
+  accion(() => api(`/api/chats/${encodeURIComponent(b.dataset.id)}/demo`, 'POST', { accion: b.dataset.demo }), textos[b.dataset.demo]);
+});
+
+let simHist = [], simCtx = {};
+function renderSim(extra = '') {
+  const el = $('#simMsgs');
+  el.innerHTML = (simHist.length ? simHist.map((m) => m.role === 'user'
+    ? `<div class="b cliente"><div class="quien">Cliente (tú)</div>${fmtWa(m.content)}</div>`
+    : m.salida.map((x) => `<div class="b bot"><div class="quien">🤖 Ultron</div>${x.tipo === 'texto' ? fmtWa(x.texto) : '📎 Envía el catálogo (imagen + PDF)'}</div>`).join('')
+      + (m.asesor ? `<div class="cuenta">🔔 Aquí te avisaría: ${esc(m.asesor.motivo)} — ${esc(m.asesor.resumen)}</div>` : '')
+      + (m.noContactar ? '<div class="cuenta">🙅 Marcado como "no contactar": sin seguimientos.</div>' : '')
+      + (m.demo ? `<div class="cuenta">🎁 Aquí te avisaría para preparar la demo: ${esc(m.demo.servicio)} — ${esc(m.demo.negocio)} — ${esc(m.demo.detalles)}</div>` : '')
+      + (m.seguimientoAutorizado ? '<div class="cuenta">👍 El cliente autorizó seguimiento.</div>' : '')
+      + (m.ficha && Object.keys(m.ficha).length ? `<div class="cuenta">📋 Guardó: ${esc(Object.entries(m.ficha).map(([k, v]) => k + ': ' + v).join(' · '))}</div>` : '')
+  ).join('') : '<div class="vacio">Escribe "Hola" para empezar.</div>') + extra;
+  el.scrollTop = el.scrollHeight;
+}
+$('#simForm').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const ta = ev.target.querySelector('textarea'), texto = ta.value.trim(); if (!texto) return;
+  const historial = simHist.flatMap((m) => m.role === 'user' ? [{ role: 'user', content: m.content }] : [{ role: 'assistant', content: m.respuestaTexto }]);
+  simHist.push({ role: 'user', content: texto }); ta.value = '';
+  renderSim('<div class="cuenta">Ultron está escribiendo…</div>');
+  api('/api/ultron/probar', 'POST', { historial, texto, contexto: simCtx })
+    .then((r) => {
+      simHist.push({ role: 'assistant', ...r });
+      if (r.ficha) simCtx.ficha = { ...(simCtx.ficha || {}), ...r.ficha };
+      if (r.demo) simCtx.demo = { estado: 'solicitada', ...r.demo };
+      if (r.seguimientoAutorizado) simCtx.seguimientoAutorizado = true;
+      renderSim();
+    })
+    .catch((e) => { simHist.pop(); renderSim(); toast('❌ ' + e.message, true); ta.value = texto; });
+});
+$('#simForm').addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); ev.currentTarget.requestSubmit(); } });
+$('#simReset').addEventListener('click', () => { simHist = []; simCtx = {}; renderSim(); });
+
+refrescar(); cargarCatalogo(); cargarConfig(); estadoUltron();
+</script>
+</body>
+</html>
