@@ -1,6 +1,6 @@
 {
   "asistente": "Ultron",
-  "motor": "huggingface",
+  "motor": "local",
   "modeloHF": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "ventas": {
     "pagos": "50% de anticipo para iniciar el proyecto y 50% al entregarlo.",

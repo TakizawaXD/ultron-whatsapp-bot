@@ -174,7 +174,7 @@ function iniciarPanel(puerto, acciones) {
         nuevo.pausaTrasRespuestaManualHoras = Number(nuevo.pausaTrasRespuestaManualHoras) || 12;
         nuevo.reinicioConversacionMinutos = Number(nuevo.reinicioConversacionMinutos) || 120;
         nuevo.numerosIgnorados = (nuevo.numerosIgnorados || []).map((n) => String(n).replace(/\D/g, '')).filter(Boolean);
-        nuevo.motor = ['menu', 'ia', 'huggingface'].includes(nuevo.motor) ? nuevo.motor : 'huggingface';
+        nuevo.motor = ['menu', 'ia', 'huggingface', 'local'].includes(nuevo.motor) ? nuevo.motor : 'local';
         nuevo.modeloHF = /^[\w.-]+\/[\w.:-]+$/.test(String(nuevo.modeloHF || '')) ? nuevo.modeloHF : ultron.MODELO_HF;
         const vt = { ...(actual.ventas || {}), ...(cuerpo.ventas || {}) };
         nuevo.ventas = {

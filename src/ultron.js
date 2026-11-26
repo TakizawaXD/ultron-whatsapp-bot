@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const AnthropicSDK = require('@anthropic-ai/sdk');
 const { cargarDatos, precio, RAIZ } = require('./flujo');
+const iaLocal = require('./ia-local');
 
 const Anthropic = AnthropicSDK.default || AnthropicSDK;
 const MODELO = 'claude-opus-5-5';
@@ -33,18 +34,23 @@ function obtenerCliente() {
   cliente = new Anthropic({ apiKey: clave, maxRetries: 2, timeout: 90_000 });
   return cliente;
 }
-/** Motor activo según config.motor: 'huggingface' | 'ia' (Claude) | 'menu'. */
+/** Motor activo según config.motor: 'local' | 'huggingface' | 'ia' (Claude) | 'menu'. */
 function proveedorActivo() {
   const m = cargarDatos().config.motor;
-  return m === 'huggingface' ? 'huggingface' : m === 'menu' ? null : 'claude';
+  if (m === 'menu') return null;
+  return ['local', 'huggingface'].includes(m) ? m : 'claude';
 }
-function disponible() { const p = proveedorActivo(); return !!(p && claveDe(p)); }
+function disponible() {
+  const p = proveedorActivo();
+  if (p === 'local') return iaLocal.disponible();
+  return !!(p && claveDe(p));
+}
 function estadoClaves() {
   const { config } = cargarDatos();
   return {
     proveedor: proveedorActivo(),
-    claude: !!claveDe('claude'), huggingface: !!claveDe('huggingface'),
-    modeloClaude: MODELO, modeloHF: config.modeloHF || MODELO_HF,
+    claude: !!claveDe('claude'), huggingface: !!claveDe('huggingface'), local: iaLocal.disponible(),
+    modeloClaude: MODELO, modeloHF: config.modeloHF || MODELO_HF, modeloLocal: iaLocal.MODELO_LOCAL,
   };
 }
 
@@ -346,53 +352,105 @@ function crearMotor(proveedor, ctx, mensajesBase) {
  * @param {string} texto  mensaje nuevo del cliente
  * @param {object} ctx  { ficha, demo, seguimientoAutorizado, nombreWhatsapp }
  */
+// Ejecuta una herramienta de Ultron y anota su efecto; devuelve el texto que verá el modelo
+function ejecutarHerramienta(nombre, i, est) {
+  i = i || {};
+  switch (nombre) {
+    case 'enviar_catalogo':
+      if (est.catalogoEnviado) return 'El catálogo ya se envió.';
+      est.salida.push({ tipo: 'catalogo' }); est.catalogoEnviado = true;
+      return 'Catálogo enviado (imagen y PDF).';
+    case 'registrar_datos_cliente':
+      for (const [k, v] of Object.entries(i)) if (typeof v === 'string' && v.trim()) est.efectos.ficha[k] = v.trim();
+      return 'Datos guardados.';
+    case 'solicitar_demo':
+      est.efectos.demo = { servicio: i.servicio || '', negocio: i.negocio || '', detalles: i.detalles || '' };
+      return 'Solicitud de demo enviada al equipo. Dile al cliente que un asesor la prepara y se la envía por este chat, que es gratuita y temporal (dura los días indicados desde la entrega) y que para seguir usándola deberá contratar.';
+    case 'autorizar_seguimiento':
+      est.efectos.seguimientoAutorizado = true;
+      return 'Seguimiento autorizado.';
+    case 'pasar_a_asesor':
+      est.efectos.asesor = { motivo: i.motivo || 'cotizacion', resumen: i.resumen || '' };
+      return 'Asesor notificado. Dile al cliente que un asesor humano le escribe en horario de atención para continuar.';
+    case 'no_contactar':
+      est.efectos.noContactar = true;
+      return 'Registrado: no se le volverá a escribir.';
+    default:
+      return 'Herramienta desconocida.';
+  }
+}
+
+// Prompt corto para el modelo local (en CPU, cada token del prompt cuesta tiempo)
+function promptCompacto() {
+  const { config, catalogo } = cargarDatos();
+  const v = config.ventas || {};
+  const dias = v.demoDias || 7;
+  const nombre = config.asistente || 'Ultron';
+  const marca = config.marca || 'la empresa';
+  const promo = (config.promocion || '').trim();
+  const lista = catalogo.map((s) => `- ${s.nombre}: desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? `, ${s.tiempo}` : ''}`).join('\n');
+  return `Eres ${nombre}, asesor comercial de ${config.negocio} por WhatsApp. Hablas como un vendedor real: natural, cálido, seguro y con energía. Respondes en español, tuteando, en mensajes cortos (2 a 4 líneas). Nunca suenas a robot.
+
+Tu meta es vender: descubre qué necesita el cliente con preguntas, recomienda UN servicio con su beneficio y precio "desde", resuelve dudas y termina siempre con una pregunta que lleve al siguiente paso. Si duda por el precio, ofrece empezar por algo sencillo, el pago (${v.pagos || '50% de anticipo y 50% al entregar'}) o una demo gratis de ${dias} días (temporal; luego debe contratar). Respeta un "no" definitivo.
+
+Reglas: usa solo estos precios y servicios. No inventes descuentos, promociones, fechas límite, testimonios ni garantías.${promo ? ` Promoción vigente: ${promo}.` : ''}${Number(v.descuentoMaximo) ? ` Solo como último recurso puedes decir que pedirás un descuento de hasta ${v.descuentoMaximo}% que confirma el asesor.` : ''} No pidas pagos ni datos bancarios. Si te preguntan si eres una persona, di que eres el asesor virtual de ${marca}.
+
+Servicios (${config.moneda}):
+${lista}
+
+Horario del equipo: ${config.horario}.
+
+Cómo actúas ante cada situación:
+- Saludo: saluda, preséntate como ${nombre} de ${marca} y pregunta qué negocio tiene o qué proyecto quiere crear. Nunca digas "¿en qué puedo ayudarte?".
+- Pregunta de precio: di el precio "desde", el beneficio para SU negocio y haz una pregunta de diagnóstico.
+- "No tengo presupuesto" o "está caro": ofrece la demo gratis de ${dias} días para que vea su proyecto antes de invertir, y el pago en dos partes.
+- "Lo voy a pensar": pregunta qué es lo que más le hace dudar y propón la demo.
+- Quiere contratar o acepta la demo: pide nombre del negocio y qué quiere ver, y usa la herramienta correspondiente.
+
+Ejemplo de conversación:
+Cliente: Hola
+${nombre}: ¡Hola! 👋 Soy ${nombre}, de ${marca}. Ayudo a negocios a vender más con páginas web, tiendas online y chatbots. Cuéntame, ¿qué negocio tienes o qué proyecto tienes en mente?
+Cliente: Tengo una panadería, cuánto cuesta una página web? no tengo mucha plata
+${nombre}: ¡Buenísimo! Una web le da a tu panadería más clientes y pedidos por WhatsApp. Las páginas están desde *$400.000 COP* y se pagan 50% al iniciar y 50% al entregar. Y si quieres verla antes de invertir, te preparamos una *demo gratis de ${dias} días*. ¿Te la armamos?
+Cliente: lo voy a pensar
+${nombre}: ¡Claro! ¿Qué es lo que más te hace dudar: el precio o cómo quedaría? Con la demo gratis sales de dudas sin pagar nada. ¿Cómo se llama tu panadería para empezarla?`;
+}
+
+// Conversación con el modelo local (node-llama-cpp)
+async function conversarLocal(base, ctx) {
+  const salida = [];
+  const est = { salida, efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false }, catalogoEnviado: false };
+  const historial = base.slice(0, -1).slice(-8);
+  const contexto = textoContexto(ctx).replace(/^# Contexto de este cliente\n/, '');
+  const ultimo = base[base.length - 1].content;
+  const texto = contexto ? `[Contexto interno, no lo menciones: ${contexto.replace(/\n/g, ' | ')}]\n${ultimo}` : ultimo;
+  const herramientas = HERRAMIENTAS.map((h) => ({ ...h, handler: (params) => ejecutarHerramienta(h.name, params, est) }));
+  const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto, herramientas });
+  const limpio = limpiarPensamiento(respuesta).replace(/^(Ultron|Asistente|Asesor)\s*:\s*/i, '').trim();
+  if (limpio) salida.push({ tipo: 'texto', texto: limpio });
+  return est;
+}
+
 async function conversar(historial, texto, ctx = {}) {
   const proveedor = proveedorActivo();
   if (!proveedor) throw new Error('El motor está en "menú clásico"');
   const base = normalizarHistorial([...historial, { role: 'user', content: texto || '(mensaje sin texto: imagen, audio o archivo)' }]);
-  const motor = crearMotor(proveedor, ctx, base);
-  const salida = [];
-  const efectos = { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false };
-  let catalogoEnviado = false;
+  let salida, efectos;
 
-  for (let vuelta = 0; vuelta < 5; vuelta++) {
-    const r = await motor.paso();
-    for (const t of r.textos) salida.push({ tipo: 'texto', texto: t });
-    const usos = r.usos.filter((u) => u.name);
-    if (!usos.length) break;
-
-    const resultados = usos.map((u) => {
-      const i = u.input || {};
-      let res = 'Hecho.';
-      switch (u.name) {
-        case 'enviar_catalogo':
-          if (!catalogoEnviado) { salida.push({ tipo: 'catalogo' }); catalogoEnviado = true; res = 'Catálogo enviado (imagen y PDF).'; }
-          else res = 'El catálogo ya se envió.';
-          break;
-        case 'registrar_datos_cliente':
-          for (const [k, v] of Object.entries(i)) if (typeof v === 'string' && v.trim()) efectos.ficha[k] = v.trim();
-          res = 'Datos guardados.';
-          break;
-        case 'solicitar_demo':
-          efectos.demo = { servicio: i.servicio || '', negocio: i.negocio || '', detalles: i.detalles || '' };
-          res = 'Solicitud de demo enviada al equipo. Dile al cliente que un asesor la prepara y se la envía por este chat, que es gratuita y temporal (dura los días indicados desde la entrega) y que para seguir usándola deberá contratar.';
-          break;
-        case 'autorizar_seguimiento':
-          efectos.seguimientoAutorizado = true;
-          res = 'Seguimiento autorizado.';
-          break;
-        case 'pasar_a_asesor':
-          efectos.asesor = { motivo: i.motivo || 'cotizacion', resumen: i.resumen || '' };
-          res = 'Asesor notificado. Dile al cliente que un asesor humano le escribe en horario de atención para continuar.';
-          break;
-        case 'no_contactar':
-          efectos.noContactar = true;
-          res = 'Registrado: no se le volverá a escribir.';
-          break;
-      }
-      return { type: 'tool_result', tool_use_id: u.id, content: res };
-    });
-    motor.agregar(r.crudo, resultados);
+  if (proveedor === 'local') {
+    ({ salida, efectos } = await conversarLocal(base, ctx));
+  } else {
+    const motor = crearMotor(proveedor, ctx, base);
+    const est = { salida: [], efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false }, catalogoEnviado: false };
+    for (let vuelta = 0; vuelta < 5; vuelta++) {
+      const r = await motor.paso();
+      for (const t of r.textos) est.salida.push({ tipo: 'texto', texto: t });
+      const usos = r.usos.filter((u) => u.name);
+      if (!usos.length) break;
+      const resultados = usos.map((u) => ({ type: 'tool_result', tool_use_id: u.id, content: ejecutarHerramienta(u.name, u.input, est) }));
+      motor.agregar(r.crudo, resultados);
+    }
+    ({ salida, efectos } = est);
   }
 
   if (!salida.some((s) => s.tipo === 'texto')) throw new Error('Ultron no generó respuesta');
@@ -416,7 +474,9 @@ ${transcripcion || '(sin mensajes previos)'}
 
 Escribe SOLO el texto del mensaje que Ultron enviará (2 a 5 líneas). No inventes promociones ni fechas límite.`;
   let texto;
-  if (proveedorActivo() === 'huggingface') {
+  if (proveedorActivo() === 'local') {
+    texto = limpiarPensamiento(await iaLocal.generar({ sistema: promptCompacto(), texto: instruccion, maxTokens: 220 }));
+  } else if (proveedorActivo() === 'huggingface') {
     const r = await pedirHF({ messages: [{ role: 'system', content: sistemaTexto(ctx) }, { role: 'user', content: instruccion }] });
     texto = limpiarPensamiento(r.choices?.[0]?.message?.content);
   } else {
@@ -426,6 +486,11 @@ Escribe SOLO el texto del mensaje que Ultron enviará (2 a 5 líneas). No invent
   }
   if (!texto) throw new Error('No se generó el mensaje');
   return texto;
+}
+
+/** IA local: procesa el guion de ventas por adelantado para que la primera respuesta sea rápida. */
+async function calentarLocal() {
+  await iaLocal.generar({ sistema: promptCompacto(), texto: 'Hola', maxTokens: 1 });
 }
 
 /** Comprueba una clave con una llamada mínima al proveedor indicado. */
@@ -438,4 +503,4 @@ async function probarClave(proveedor = 'claude') {
   return r.content.some((b) => b.type === 'text');
 }
 
-module.exports = { conversar, mensajeProactivo, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };
+module.exports = { conversar, mensajeProactivo, calentarLocal, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };

@@ -78,6 +78,7 @@ flowchart LR
 - **Git**, para instalar una dependencia que viene de GitHub.
 - Un número de WhatsApp en el celular, para vincularlo como dispositivo.
 - Para la IA, **una** de estas opciones:
+  - **IA local gratis**: descarga el modelo (ver abajo), unos 2,1 GB en disco y 3 GB de RAM libres;
   - un token de **Hugging Face** con saldo para *Inference Providers*, o
   - una API key de **Anthropic** (Claude).
   - Sin ninguna, el bot funciona igual con el menú clásico.
@@ -94,6 +95,13 @@ npm install
 ```
 
 > `PUPPETEER_SKIP_DOWNLOAD` evita descargar Chromium, unos 150 MB. El bot usa tu Chrome o Edge (ver `src/navegador.js`). Si tu navegador está en otra ruta, define `CHROME_PATH`.
+
+Descarga la IA local gratuita (Qwen 2.5 3B desde Hugging Face, 2,1 GB):
+
+```powershell
+mkdir modelos
+curl.exe -L -o modelos\qwen2.5-3b-instruct-q4_k_m.gguf https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf
+```
 
 Comprueba que todo esté bien:
 
@@ -144,7 +152,8 @@ Se elige en *Configuración → Cómo responde el bot*:
 
 | Motor | Modelo | Necesita | Notas |
 |---|---|---|---|
-| **Hugging Face** (predeterminado) | `deepseek-ai/DeepSeek-V4.1-Flash-1017`; también Qwen 3.8, Llama 3.3 70B, Gemma 4, GPT-OSS 120B o GLM 5.3 | Token de Hugging Face con permiso *Inference Providers* **y saldo** | Usa `router.huggingface.co` (API compatible con chat completions). Hugging Face cobra este servicio: compra créditos o suscríbete a PRO. |
+| **IA local gratis** (predeterminado) | `qwen2.5-3b-instruct-q4_k_m.gguf` (Qwen 2.5 3B, de Hugging Face) | El archivo del modelo en `modelos/` (2,1 GB) | Corre en tu equipo con `node-llama-cpp`: sin cuentas, sin internet y sin límites. Con un i5 de 8.ª generación, la primera respuesta tras arrancar ya viene precalentada y las siguientes tardan entre 5 y 15 s. Usa un prompt de ventas más corto y con ejemplos. |
+| **Hugging Face** | `deepseek-ai/DeepSeek-V4.1-Flash-1017`; también Qwen 3.8, Llama 3.3 70B, Gemma 4, GPT-OSS 120B o GLM 5.3 | Token de Hugging Face con permiso *Inference Providers* **y saldo** | Usa `router.huggingface.co` (API compatible con chat completions). Hugging Face cobra este servicio: compra créditos o suscríbete a PRO. |
 | **Claude** | `claude-opus-5-5` | API key de Anthropic | Tiene activado el respaldo automático (`fallbacks: "default"`). |
 | **Menú clásico** | — | Nada | Menú de 5 opciones con textos fijos. |
 
@@ -338,7 +347,9 @@ cd ~/whatsapp-bot && git pull && PUPPETEER_SKIP_DOWNLOAD=true npm install && pm2
 
 ```
 whatsapp-bot/
+├── modelos/                 # Modelo de IA local (no se sube a git)
 ├── src/
+│   ├── ia-local.js          # IA local con node-llama-cpp (modelo GGUF de Hugging Face)
 │   ├── index.js             # Cliente de WhatsApp, filtros, Ultron, menú, avisos, seguimientos y demos
 │   ├── ultron.js            # IA de ventas: prompt, herramientas, motores Hugging Face y Claude
 │   ├── flujo.js             # Menú clásico (sin IA) y formato de precios
@@ -356,7 +367,7 @@ whatsapp-bot/
 └── .puppeteerrc.cjs         # No descargar Chromium
 ```
 
-Carpetas que se crean al usarlo y **no se suben a git**: `node_modules/`, `.wwebjs_auth/` (sesión de WhatsApp), `.wwebjs_cache/`, `.chrome-catalogo/`, `output/` (catálogo generado) y `data/` (conversaciones, estadísticas, claves y audios).
+Carpetas que se crean al usarlo y **no se suben a git**: `node_modules/`, `.wwebjs_auth/` (sesión de WhatsApp), `.wwebjs_cache/`, `.chrome-catalogo/`, `modelos/` (IA local), `output/` (catálogo generado) y `data/` (conversaciones, estadísticas, claves y audios).
 
 ---
 

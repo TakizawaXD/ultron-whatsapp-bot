@@ -72,6 +72,18 @@ client.on('ready', async () => {
   try { await asegurarCatalogo(); } catch (e) { E.log('⚠️  No se pudo generar el catálogo:', e); }
 });
 
+// Carga el modelo local al arrancar para que la primera respuesta no espere la carga
+function precargarIALocal() {
+  const iaLocal = require('./ia-local');
+  if (cargarDatos().config.motor !== 'local' || !iaLocal.disponible()) return;
+  const t = Date.now();
+  E.log('🧠 Cargando la IA local en memoria...');
+  iaLocal.cargar()
+    .then(() => ultron.calentarLocal())
+    .then(() => E.log(`🧠 IA local lista en ${Math.round((Date.now() - t) / 1000)} s`))
+    .catch((e) => E.log('⚠️  No se pudo cargar la IA local:', e.message));
+}
+
 client.on('message_create', async (msg) => {
   // Cualquier mensaje (recibido o enviado) refresca "Todos mis chats" en el panel
   if (!msg.isStatus && msg.from !== 'status@broadcast') E.bus.emit('wa', msg.fromMe ? msg.to : msg.from);
@@ -283,13 +295,17 @@ async function responderConUltron(chatId, texto, ctx) {
   const s = E.sesiones[chatId];
   const { chat, prueba, numero } = ctx;
   await chat.sendStateTyping().catch(() => {});
+  // WhatsApp borra el "escribiendo…" a los ~25 s; la IA local puede tardar más, así que se renueva
+  const escribiendo = setInterval(() => chat.sendStateTyping().catch(() => {}), 15_000);
   let r;
   try {
     r = await ultron.conversar(s.ia || [], texto, contextoCliente(s));
   } catch (e) {
+    clearInterval(escribiendo);
     E.log(`⚠️  Ultron no pudo responder a ${s.nombre || numero} (${e.message}). Respondo con el menú.`);
     return responderConMenu(chatId, texto, s.estado && s.estado !== 'ultron' ? s : undefined, ctx);
   }
+  clearInterval(escribiendo);
   E.log(`🤖 Ultron → ${s.nombre || numero}: "${r.respuestaTexto.replace(/\s+/g, ' ').slice(0, 70)}"`);
   await enviarSalida(chatId, await conVoz(chatId, r.salida, { prueba }));
 
@@ -546,3 +562,4 @@ async function iniciarWhatsApp(intento = 1) {
   }
 }
 iniciarWhatsApp();
+precargarIALocal(); // en paralelo: la IA queda lista mientras WhatsApp conecta

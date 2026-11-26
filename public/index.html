@@ -242,7 +242,7 @@
     <div style="height:16px"></div>
     <form class="form" id="formConfig">
       <div class="seccion">Ultron</div>
-      <div><label for="c_motor">Cómo responde el bot</label><select id="c_motor" name="motor" class="campo"><option value="huggingface">Ultron con IA de Hugging Face</option><option value="ia">Ultron con Claude (Anthropic)</option><option value="menu">Menú clásico (sin IA)</option></select></div>
+      <div><label for="c_motor">Cómo responde el bot</label><select id="c_motor" name="motor" class="campo"><option value="local">Ultron con IA local gratis (en este equipo)</option><option value="huggingface">Ultron con IA de Hugging Face (de pago)</option><option value="ia">Ultron con Claude (Anthropic)</option><option value="menu">Menú clásico (sin IA)</option></select></div>
       <div class="full"><label for="c_modeloHF">Modelo de Hugging Face</label><select id="c_modeloHF" name="modeloHF" class="campo">
         <option value="deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek V4.1 Flash — rápido y económico (recomendado)</option>
         <option value="Qwen/Qwen3.8-27B">Qwen 3.8 27B — muy bueno en español</option>
@@ -635,13 +635,14 @@ setInterval(() => estado && render(), 30000); // actualizar "hace X min"
 async function estadoUltron() {
   try {
     const e = await api('/api/ultron/estado');
-    const nombreMotor = e.proveedor === 'huggingface' ? `Hugging Face · ${e.modeloHF.split('/').pop()}` : e.proveedor === 'claude' ? `Claude · ${e.modeloClaude}` : 'menú clásico';
-    $('#iaPill').textContent = !e.proveedor ? 'Menú clásico' : e.disponible ? `IA: ${e.proveedor === 'huggingface' ? 'Hugging Face' : 'Claude'}` : 'IA sin configurar';
+    const nombreMotor = e.proveedor === 'local' ? `IA local gratis · ${e.modeloLocal}` : e.proveedor === 'huggingface' ? `Hugging Face · ${e.modeloHF.split('/').pop()}` : e.proveedor === 'claude' ? `Claude · ${e.modeloClaude}` : 'menú clásico';
+    $('#iaPill').textContent = !e.proveedor ? 'Menú clásico' : e.disponible ? `IA: ${{ local: 'local gratis', huggingface: 'Hugging Face', claude: 'Claude' }[e.proveedor]}` : 'IA sin configurar';
     $('#iaPill').className = 'pill ' + (e.disponible ? 'p-verde' : 'p-ambar');
     $('#okHF').textContent = e.huggingface ? '✅ guardado' : '';
     $('#okClaude').textContent = e.claude ? '✅ guardada' : '';
     $('#claveEstado').innerHTML = !e.proveedor ? 'El bot está en <b>menú clásico</b> (sin IA). Cámbialo abajo en "Cómo responde el bot".'
       : e.disponible ? `✅ Ultron responde con <b>${esc(nombreMotor)}</b>.`
+      : e.proveedor === 'local' ? `⚠️ Falta el modelo local (<b>modelos/${esc(e.modeloLocal)}</b>): mientras tanto el bot responde con el menú clásico.`
       : `⚠️ El motor elegido es <b>${esc(nombreMotor)}</b> pero falta su ${e.proveedor === 'huggingface' ? 'token' : 'API key'}: mientras tanto el bot responde con el menú clásico.`;
   } catch {}
 }
