@@ -110,8 +110,20 @@ client.on('message', async (msg) => {
   return atender(msg, { chatId: msg.from, prueba: false });
 });
 
+// WhatsApp a veces entrega el mismo mensaje más de una vez: se atiende solo una
+const atendidos = new Set();
+function yaAtendido(msg) {
+  const id = msg.id?._serialized || msg.id?.id;
+  if (!id) return false;
+  if (atendidos.has(id)) return true;
+  atendidos.add(id);
+  if (atendidos.size > 2000) atendidos.delete(atendidos.values().next().value);
+  return false;
+}
+
 /** Atiende un mensaje entrante (o tuyo a ti mismo en modo prueba) y responde si corresponde. */
 async function atender(msg, { chatId, prueba }) {
+  if (yaAtendido(msg)) return;
   try {
     if (msg.isStatus || chatId === 'status@broadcast' || chatId.endsWith('@newsletter')) return;
     if (['e2e_notification', 'notification_template', 'call_log', 'protocol', 'revoked'].includes(msg.type)) return;
@@ -282,7 +294,8 @@ async function procesarColaIA(chatId) {
   const c = colasIA.get(chatId);
   if (!c || !c.textos.length) return;
   c.ocupado = true;
-  const texto = c.textos.splice(0).join('\n');
+  // Si mandó varias veces el mismo texto seguido, cuenta como uno
+  const texto = c.textos.splice(0).filter((t, i, a) => i === 0 || t.trim() !== a[i - 1].trim()).join('\n');
   try {
     await responderConUltron(chatId, texto, c.ctx);
   } finally {
