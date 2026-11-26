@@ -41,5 +41,6 @@
   "puertoPanel": 3000,
   "probarConmigo": true,
   "numerosIgnorados": [],
-  "diasInactividad": 14
+  "diasInactividad": 14,
+  "tecnologias": ""
 }

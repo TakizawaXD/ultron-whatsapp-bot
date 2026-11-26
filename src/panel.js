@@ -184,6 +184,7 @@ function iniciarPanel(puerto, acciones) {
         };
         nuevo.asistente = String(nuevo.asistente || 'Ultron').trim() || 'Ultron';
         nuevo.promocion = String(nuevo.promocion || '').trim();
+        nuevo.tecnologias = String(nuevo.tecnologias || '').trim();
         const horas = (Array.isArray(nuevo.seguimientosHoras) ? nuevo.seguimientosHoras : String(nuevo.seguimientosHoras || '').split(','))
           .map(Number).filter((h) => Number.isFinite(h) && h >= 1).slice(0, 2);
         nuevo.seguimientosHoras = horas;

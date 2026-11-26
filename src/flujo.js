@@ -19,7 +19,9 @@ const OPCIONES_MENU = [
   `3️⃣ Pedir una cotización`,
   `4️⃣ Horario y contacto`,
   `5️⃣ Hablar con un asesor`,
+  `6️⃣ Demo gratis de 7 días`,
   ``,
+  `💬 O escríbeme tu pregunta con tus palabras y te respondo.`,
   `Escribe *menu* en cualquier momento para volver aquí.`,
 ];
 
@@ -110,6 +112,19 @@ function responder(texto, sesion, datos = cargarDatos()) {
     };
   }
 
+  // Esperando los datos del negocio para la demo
+  if (estado === 'demo') {
+    const dias = config.ventas?.demoDias || 7;
+    return {
+      respuestas: [{
+        tipo: 'texto',
+        texto: `🎁 ¡Listo! Ya le pasé tu solicitud al equipo. Te preparamos la demo y te la enviamos por este chat. Recuerda que es *gratis y dura ${dias} días* desde que la recibes; para seguir usándola contratas el servicio.\n\nMientras tanto, ¿tienes alguna pregunta? Escríbela o escribe *menu*.`,
+      }],
+      estado: 'demo_solicitada',
+      demo: { servicio: 'por confirmar', negocio: texto, detalles: texto },
+    };
+  }
+
   // Dentro de la lista de precios, un número es un servicio
   if (estado === 'precios') {
     const n = parseInt(t, 10);
@@ -143,9 +158,27 @@ function responder(texto, sesion, datos = cargarDatos()) {
         estado: 'humano',
         pausar: true,
       };
+    case '6': {
+      const dias = config.ventas?.demoDias || 7;
+      return {
+        respuestas: [{
+          tipo: 'texto',
+          texto: [
+            `🎁 *Demo gratis de ${dias} días*`,
+            `Te preparamos una versión sencilla de tu proyecto para que veas cómo quedaría *antes de invertir*. Dura ${dias} días desde que la recibes y luego, si te gusta, contratas el servicio.`,
+            ``,
+            `Cuéntame en *un solo mensaje*:`,
+            `• Nombre de tu negocio y a qué se dedica`,
+            `• Qué quieres ver (página web, tienda, app, sistema, chatbot…)`,
+            `• Ideas o colores que te gusten`,
+          ].join('\n'),
+        }],
+        estado: 'demo',
+      };
+    }
     default:
       return {
-        respuestas: [{ tipo: 'texto', texto: `No entendí tu respuesta 🤔. Escribe un número del *1 al 5* o *menu* para ver las opciones.` }],
+        respuestas: [{ tipo: 'texto', texto: `No entendí tu respuesta 🤔. Escribe un número del *1 al 6* o *menu* para ver las opciones.` }],
         estado: estado || 'menu',
       };
   }

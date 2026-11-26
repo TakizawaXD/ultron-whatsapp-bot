@@ -46,7 +46,7 @@ function generar(o) {
   return tarea;
 }
 
-async function generarAhora({ sistema, historial = [], texto, herramientas = [], maxTokens = 180 }) {
+async function generarAhora({ sistema, historial = [], texto, herramientas = [], maxTokens = 140, temperatura = 0.6 }) {
   const m = await cargar();
   const sesion = new m.LlamaChatSession({ contextSequence: m.secuencia, autoDisposeSequence: false });
   try {
@@ -59,7 +59,7 @@ async function generarAhora({ sistema, historial = [], texto, herramientas = [],
       params: h.input_schema && Object.keys(h.input_schema.properties || {}).length ? paraGbnf(h.input_schema) : undefined,
       handler: (params) => h.handler(params || {}),
     })])) : undefined;
-    const respuesta = await sesion.prompt(texto, { functions, maxTokens, temperature: 0.7, repeatPenalty: { penalty: 1.1 } });
+    const respuesta = await sesion.prompt(texto, { functions, maxTokens, temperature: temperatura, repeatPenalty: { penalty: 1.1 } });
     return String(respuesta || '').trim();
   } finally {
     sesion.dispose({ disposeSequence: false });

@@ -401,11 +401,15 @@ ${lista}
 Horario del equipo: ${config.horario}.
 
 Cómo actúas ante cada situación:
-- Saludo: saluda, preséntate como ${nombre} de ${marca} y pregunta qué negocio tiene o qué proyecto quiere crear. Nunca digas "¿en qué puedo ayudarte?".
+- Saludo: SOLO en tu primer mensaje saluda y preséntate como ${nombre} de ${marca}. En los demás mensajes ve directo al punto, sin "Hola" ni presentarte otra vez. Nunca digas "¿en qué puedo ayudarte?".
+- Nunca supongas el tipo de negocio del cliente: pregúntalo. El ejemplo de abajo es solo de estilo.
+- Tecnologías o herramientas: ${(cargarDatos().config.tecnologias || '').trim() ? `trabajamos con ${cargarDatos().config.tecnologias}.` : 'NO afirmes con qué lenguajes o herramientas trabajamos; di que el asesor le confirma la tecnología ideal para su proyecto.'}
 - Pregunta de precio: di el precio "desde", el beneficio para SU negocio y haz una pregunta de diagnóstico.
 - "No tengo presupuesto" o "está caro": ofrece la demo gratis de ${dias} días para que vea su proyecto antes de invertir, y el pago en dos partes.
 - "Lo voy a pensar": pregunta qué es lo que más le hace dudar y propón la demo.
-- Quiere contratar o acepta la demo: pide nombre del negocio y qué quiere ver, y usa la herramienta correspondiente.
+- Quiere contratar o acepta la demo: pide nombre del negocio y qué quiere ver.
+- Pregunta técnica o compleja: responde con precisión y en tono profesional, en pocas líneas. Si no sabes algo con certeza, dilo y ofrece que el asesor lo confirme. Nunca inventes datos.
+- Si no sabe qué necesita, recuérdale que puede escribir *menu* para ver las opciones del 1 al 6.
 
 Ejemplo de conversación:
 Cliente: Hola
@@ -420,18 +424,79 @@ ${nombre}: ¡Claro! ¿Qué es lo que más te hace dudar: el precio o cómo queda
 async function conversarLocal(base, ctx) {
   const salida = [];
   const est = { salida, efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false }, catalogoEnviado: false };
-  const historial = base.slice(0, -1).slice(-6);
+  const historial = base.slice(0, -1).slice(-4);
   const contexto = textoContexto(ctx).replace(/^# Contexto de este cliente\n/, '');
   const ultimo = base[base.length - 1].content;
-  const texto = contexto ? `[Contexto interno, no lo menciones: ${contexto.replace(/\n/g, ' | ')}]\n${ultimo}` : ultimo;
+  const exactos = datosDeServicios(ultimo);
+  const internos = [
+    contexto && `Contexto: ${contexto.replace(/\n/g, ' | ')}`,
+    exactos.length && `Datos EXACTOS de lo que pregunta (cítalos tal cual, no cambies precios ni tiempos): ${exactos.join(' || ')}`,
+  ].filter(Boolean);
+  const texto = internos.length ? `[Información interna, no la menciones como tal: ${internos.join(' — ')}]\n${ultimo}` : ultimo;
   // Sin herramientas: el modelo pequeño casi no las usa y alargan cada consulta.
   // Las intenciones importantes se detectan con frases clave (más rápido y más fiable).
   detectarIntenciones(ultimo, historial, ctx, est);
-  const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto });
-  const nombre = cargarDatos().config.asistente || 'Ultron';
-  const limpio = limpiarPensamiento(respuesta).replace(new RegExp(`^(${nombre}|Ultron|Asistente|Asesor)\\s*:\\s*`, 'i'), '').trim();
+  const { config } = cargarDatos();
+  // Preguntas sobre tecnologías: el modelo pequeño tiende a inventar ("sí, trabajamos con X").
+  // Si no están configuradas en config.tecnologias, se responde al instante con un texto fijo y honesto.
+  const tNorm = String(ultimo).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  if (!(config.tecnologias || '').trim() && /\b(react|node|python|php|laravel|wordpress|flutter|kotlin|swift|java|angular|vue|django|next|tecnologia|tecnologias|lenguaje|lenguajes|framework|stack)\b/.test(tNorm)) {
+    salida.push({ tipo: 'texto', texto: 'Trabajamos con tecnologías modernas y elegimos la más adecuada según lo que necesita tu proyecto. El asesor te confirma el detalle técnico. ¿Qué proyecto tienes en mente para recomendarte la mejor opción?' });
+    return est;
+  }
+  const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto, temperatura: 0.35 });
+  const nombre = config.asistente || 'Ultron';
+  let limpio = limpiarPensamiento(respuesta).replace(new RegExp(`^(${nombre}|Ultron|Asistente|Asesor)\\s*:\\s*`, 'i'), '').trim();
+  // Si ya habló antes, quitar el saludo/presentación repetidos del inicio
+  if (historial.some((h) => h.role === 'assistant')) {
+    limpio = limpio
+      .replace(/^¡?\s*(hola|buenas)[^.!?\n]*[!.]?\s*(👋\s*)?/i, '')
+      .replace(new RegExp(`^soy ${nombre}[^.!?\\n]*[.!]\\s*`, 'i'), '')
+      .replace(/^nos especializamos[^.!?\n]*[.!]\s*/i, '')
+      .trim();
+    limpio = limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  }
   if (limpio) salida.push({ tipo: 'texto', texto: limpio });
   return est;
+}
+
+// Palabras con las que los clientes se refieren a cada servicio (por id del catálogo)
+const PALABRAS_SERVICIO = {
+  web: /pagina(s)? web|sitio web|\bweb\b|pagina para mi/,
+  tienda: /tienda|e-?commerce|vender (en linea|por internet|online)|carrito/,
+  app: /\bapps?\b|aplicaci|movil|android|\bios\b|play ?store/,
+  sistema: /sistema|inventario|facturaci|software|crm|erp|punto de venta/,
+  bot: /chat ?bot|\bbots?\b|asistente virtual/,
+  whatsapp: /whats ?app/,
+  soporte: /mantenimiento|soporte|arreglar|se (me )?dano|actualizar mi/,
+  datos: /dato|dashboard|excel|reporte|analisis|power ?bi|kpi|estadistica/,
+  dashboard: /dashboard|tiempo real/,
+  reportes: /reporte|extraer|extraccion/,
+  landing: /landing|una sola pagina|pagina de (aterrizaje|venta)/,
+  uxui: /diseno|\bux\b|\bui\b|figma|prototipo/,
+  seo: /\bseo\b|google|posicionamiento|aparecer en/,
+  hosting: /dominio|hosting|correo(s)? (corporativo|empresarial|con mi)|\.com/,
+  migracion: /migra|moderniz|sistema (viejo|antiguo)/,
+  consultoria: /consultor|capacitaci|asesoria|ensen/,
+  api: /\bapis?\b|backend|integrar/,
+  automatizaciones: /automatiz|tareas repetitivas/,
+  ia: /inteligencia artificial|\bia\b|\bai\b/,
+  pagos: /pagos? en linea|pasarela|recibir pagos|tarjeta/,
+  marketing: /marketing|publicidad|campana|correos? masivo/,
+};
+
+// Datos exactos de los servicios que el cliente menciona (para que la IA no se equivoque de precio)
+function datosDeServicios(texto) {
+  const { config, catalogo } = cargarDatos();
+  const t = ` ${String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} `;
+  const hallados = catalogo.filter((s) => {
+    const rx = PALABRAS_SERVICIO[s.id] || PALABRAS_SERVICIO[s.id.replace(/-\d+$/, '')];
+    if (rx?.test(t)) return true;
+    return s.nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\W+/).some((w) => w.length > 5 && t.includes(w));
+  }).slice(0, 3);
+  // Lo que incluye solo se agrega si lo pregunta (menos texto = respuesta más rápida)
+  const pideDetalle = /incluye|trae|tiene|detalle|que hacen|que ofrece|caracteristic/.test(t);
+  return hallados.map((s) => `${s.nombre}: desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? `, tiempo ${s.tiempo}` : ''}${pideDetalle && s.incluye?.length ? `, incluye ${s.incluye.join('; ')}` : ''}`);
 }
 
 // Frases clave del cliente → avisos y registros (para el motor local)

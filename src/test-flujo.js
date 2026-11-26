@@ -34,4 +34,11 @@ assert.strictEqual(r.estado, 'humano'); assert.strictEqual(r.pausar, true);
 r = paso('4');
 assert.match(r.respuestas[0].texto, /Horario/);
 
+r = paso('menu');
+assert.match(r.respuestas[0].texto, /6️⃣ Demo gratis/);
+r = paso('6');
+assert.strictEqual(r.estado, 'demo'); assert.match(r.respuestas[0].texto, /Demo gratis de 7 días/);
+r = paso('Panadería Ana, quiero ver una página web con el menú');
+assert.strictEqual(r.estado, 'demo_solicitada'); assert.match(r.demo.negocio, /Panadería Ana/);
+
 console.log('✅ Todas las pruebas del flujo pasaron');

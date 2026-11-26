@@ -207,6 +207,10 @@ async function atender(msg, { chatId, prueba }) {
         await client.sendMessage(chatId, '🧪 Conversación con Ultron reiniciada. Escríbele como si fueras un cliente nuevo.');
         return;
       }
+      // Números, "menú" y saludos de inicio → menú instantáneo; texto libre → IA
+      if (esParaMenu(texto, s, vencida || pausaVencida)) {
+        return responderConMenu(chatId, texto, vencida || pausaVencida ? undefined : s, ctx);
+      }
       return encolarIA(chatId, texto || `[${msg.type}]`, ctx);
     }
     const sesionPrevia = vencida || pausaVencida ? undefined : s;
@@ -295,17 +299,41 @@ async function pasarAAsesor(chatId, { motivo, resumen }, { prueba, numero }) {
   E.log(`🔔 ${s.nombre || numero} ${motivoTxt}`);
 }
 
-// ---------- Menú clásico (respaldo cuando no hay IA) ----------
+// ¿Este mensaje lo responde el menú (instantáneo) en vez de la IA?
+function esParaMenu(texto, s, conversacionNueva) {
+  const t = String(texto || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  if (/^\d{1,2}[.)]?$/.test(t)) return true;                       // eligió una opción
+  if (['menu', 'inicio', '0', 'opciones'].includes(t)) return true;
+  if (['cotizacion', 'demo'].includes(s?.estado)) return true;      // está llenando la cotización o la demo
+  const saludo = /^(hola+|holi|buenas?|buen(os)? dias?|buenas (tardes|noches)|hey|hi|ola|saludos|que tal)( [a-z]+)?[!.¡ ]*$/.test(t);
+  return saludo && (conversacionNueva || !s?.estado || s.estado === 'menu');
+}
+
+const RESUMEN_MENU = {
+  menu: 'Le mostré el menú de opciones.', precios: 'Le mostré la lista de precios de los servicios.',
+  servicio: 'Le mostré el detalle de un servicio.', cotizacion: 'Le pedí los detalles para la cotización.',
+  cotizacion_enviada: 'Recibí su solicitud de cotización y la pasé al asesor.', humano: 'Le avisé al asesor que quiere hablar con una persona.',
+  demo: 'Le expliqué la demo gratis y le pedí los datos de su negocio.', demo_solicitada: 'Registré su solicitud de demo gratis.',
+};
+
+// ---------- Menú (instantáneo; también es el respaldo cuando no hay IA) ----------
 async function responderConMenu(chatId, texto, sesionPrevia, { chat, prueba, numero }) {
   const s = E.sesiones[chatId];
   const r = responder(texto, sesionPrevia);
   E.log(`💬 ${s.nombre || numero} [${sesionPrevia?.estado || 'nuevo'}] "${(texto || '').slice(0, 40)}" → ${r.estado}`);
-  await chat.sendStateTyping();
-  await esperar(1200);
+  await chat.sendStateTyping().catch(() => {});
+  await esperar(400);
   await enviarSalida(chatId, r.respuestas);
   s.estado = r.estado;
   s.ultimo = Date.now();
+  // Para que la IA sepa qué pasó si después el cliente escribe libremente
+  s.ia = [...(s.ia || []), { role: 'user', content: texto || '' }, { role: 'assistant', content: `[${RESUMEN_MENU[r.estado] || 'Respondí con el menú.'}]` }].slice(-40);
   E.guardar();
+  if (r.demo) {
+    s.demo = { estado: 'solicitada', ...r.demo, solicitada: Date.now(), entregada: 0, vence: 0 };
+    E.guardar();
+    await avisarDemo(chatId, r.demo, { prueba, numero });
+  }
   if (r.pausar) {
     await pasarAAsesor(chatId, { motivo: r.estado === 'humano' ? 'pide_humano' : 'cotizacion', resumen: `Último mensaje: "${texto}"` }, { prueba, numero });
     if (prueba) { s.estado = null; E.guardar(); }
