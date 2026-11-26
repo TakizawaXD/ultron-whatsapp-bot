@@ -33,12 +33,13 @@ Incluye un **panel web** para ver todos tus chats, controlar el bot, gestionar c
 | | |
 |---|---|
 | 🤖 **Asesor con IA** | Conversa como un vendedor: diagnostica, recomienda, maneja objeciones y cierra. Funciona con Hugging Face o con Claude, y si no hay IA disponible usa un menú clásico. |
-| 🎯 **Solo a quien corresponde** | Por defecto responde solo a quienes **no** están en tus contactos. En cada chat puedes elegir *automática*, *responder siempre* o *no responder nunca*. **Nunca habla en grupos.** |
+| 🎯 **Solo a quien corresponde** | Por defecto responde a quienes **no** están en tus contactos y a los contactos que llevaban **más de 14 días sin hablar contigo** (`diasInactividad`). En cada chat puedes elegir *automática*, *responder siempre* o *no responder nunca*. **Nunca habla en grupos.** |
 | 🎁 **Demo gratuita de 7 días** | Ultron la ofrece cuando el presupuesto frena la venta y te avisa con los datos del negocio. Tú la preparas y, cuando vence, Ultron escribe al cliente para cerrar. |
 | 📋 **Ficha del cliente** | Guarda nombre, negocio, servicio, necesidad, presupuesto, fecha y correo mientras conversa. |
 | 🔔 **Te avisa** | Cuando alguien quiere contratar, pide cotización, pide un descuento o una persona, recibes un aviso en *"Mensajes para mí mismo"* y el bot se pausa en ese chat. |
 | ⏰ **Seguimientos con permiso** | Solo escribe de nuevo a quien lo autorizó (a las 24 h y a las 72 h), y solo de 8:00 a. m. a 8:00 p. m. |
 | 📂 **Catálogo automático** | Genera el catálogo en imagen y PDF con tu logo y tus colores a partir de `catalogo.json`. |
+| 📊 **Análisis de datos** | Pestaña *Análisis*: cifras de 30 días, embudo de ventas, servicios más pedidos, mensajes por día y horas en que más escriben. |
 | 🖥️ **Panel web** | Muestra tus chats de WhatsApp, clientes y demos, las respuestas del bot, un simulador de Ultron, el catálogo, la configuración y un registro en vivo. |
 | 🧪 **Modo prueba** | Escríbete a ti mismo y el bot te responde como si fueras un cliente. |
 | 🎤 **Notas de voz** (opcional, desactivadas) | Respuestas en audio con las voces de Windows. |
@@ -229,7 +230,8 @@ Todo se edita desde el panel. Estas son las claves de `config.json`:
 
 | Clave | Descripción |
 |---|---|
-| `asistente` | Nombre del asistente (`Ultron`). |
+| `asistente` | Nombre con el que se presenta en el chat (`Andrés`). |
+| `diasInactividad` | Días sin hablar a partir de los cuales el bot también atiende a un contacto guardado (14; 0 = nunca). |
 | `motor` | `huggingface`, `ia` (Claude) o `menu`. |
 | `modeloHF` | Modelo de Hugging Face. |
 | `ventas.pagos` | Forma de pago que comunica Ultron. |

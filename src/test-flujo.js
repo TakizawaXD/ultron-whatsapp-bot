@@ -6,14 +6,19 @@ let s;
 const paso = (txt) => { const r = responder(txt, s); s = { estado: r.estado }; return r; };
 
 let r = paso('Hola, buenas');
-assert.strictEqual(r.estado, 'menu'); assert.match(r.respuestas[0].texto, /1️⃣/); assert.match(r.respuestas[0].texto, /Soy \*Ultron\*/);
+assert.strictEqual(r.estado, 'menu'); assert.match(r.respuestas[0].texto, /1️⃣/); assert.match(r.respuestas[0].texto, /Soy \*Andrés\*/);
 r = paso('1');
 assert.strictEqual(r.estado, 'precios'); assert.ok(r.respuestas.some((x) => x.tipo === 'catalogo'));
 r = paso('2');
 assert.strictEqual(r.estado, 'servicio'); assert.match(r.respuestas[0].texto, /Tiendas online/); assert.match(r.respuestas[0].texto, /\$800\.000 COP/);
 r = paso('2'); // vuelve a lista de precios
-r = paso('10');
+const nIA = require('../catalogo.json').findIndex((s) => s.adicional && /inteligencia artificial/i.test(s.nombre)) + 1;
+r = paso(String(nIA));
 assert.match(r.respuestas[0].texto, /inteligencia artificial[\s\S]*\$700\.000 COP/); assert.doesNotMatch(r.respuestas[0].texto, /Incluye/);
+r = paso('2');
+const nDatos = require('../catalogo.json').findIndex((s) => s.id === 'datos') + 1;
+r = paso(String(nDatos));
+assert.match(r.respuestas[0].texto, /Análisis de datos[\s\S]*\$700\.000 COP/);
 r = paso('menu');
 assert.doesNotMatch(r.respuestas[0].texto, /Bienvenido/);
 r = paso('xyz');

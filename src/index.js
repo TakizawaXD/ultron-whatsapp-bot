@@ -121,6 +121,35 @@ function yaAtendido(msg) {
   return false;
 }
 
+/**
+ * ¿Este contacto llevaba más de `diasInactividad` días sin hablar contigo?
+ * Mira el mensaje anterior del chat (tuyo o suyo). Si el bot ya está atendiendo ese chat
+ * por inactividad, sigue atendiéndolo mientras la conversación siga viva.
+ * Si no se puede comprobar, devuelve false (por seguridad, no se responde a contactos).
+ */
+async function contactoInactivo(chatId, msg, chat, config) {
+  const dias = Number(config.diasInactividad) || 0;
+  if (dias <= 0) return false;
+  const s = E.sesiones[chatId];
+  const vivo = s?.porInactividad && s.ultimo && Date.now() - s.ultimo < config.reinicioConversacionMinutos * 60_000;
+  if (vivo) return true;
+  try {
+    const recientes = await Promise.race([chat.fetchMessages({ limit: 6 }), esperar(15_000).then(() => null)]);
+    if (!recientes) return false;
+    const actual = msg.id?._serialized;
+    const anteriores = recientes.filter((m) => m.id?._serialized !== actual && m.timestamp && m.timestamp <= msg.timestamp);
+    // Sin mensajes anteriores = contacto guardado que nunca te había escrito: también lo atiende
+    const ultimo = anteriores.length ? Math.max(...anteriores.map((m) => m.timestamp)) : 0;
+    const diasSinHablar = ultimo ? (msg.timestamp - ultimo) / 86_400 : Infinity;
+    if (diasSinHablar < dias) return false;
+    E.log(`📇 Contacto ${ultimo ? `que llevaba ${Math.floor(diasSinHablar)} días sin hablar` : 'que nunca te había escrito'}: lo atiende el bot`);
+    (E.sesiones[chatId] ||= { historial: [] }).porInactividad = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Atiende un mensaje entrante (o tuyo a ti mismo en modo prueba) y responde si corresponde. */
 async function atender(msg, { chatId, prueba }) {
   if (yaAtendido(msg)) return;
@@ -146,7 +175,11 @@ async function atender(msg, { chatId, prueba }) {
       if (modo === 'nunca') return;
       contacto = await msg.getContact();
       numero = contacto.number || chatId.split('@')[0];
-      if (modo === 'auto' && (contacto.isMyContact || (config.numerosIgnorados || []).includes(numero))) return;
+      if (modo === 'auto') {
+        if ((config.numerosIgnorados || []).includes(numero)) return;
+        // Contactos: solo si llevaban más de N días sin hablar contigo (o el bot ya los está atendiendo)
+        if (contacto.isMyContact && !(await contactoInactivo(chatId, msg, chat, config))) return;
+      }
     }
 
     const nuevo = !E.sesiones[chatId];
@@ -207,7 +240,7 @@ async function enviarSalida(chatId, salida) {
         await client.sendMessage(chatId, MessageMedia.fromFilePath(CATALOGO_PDF), { sendMediaAsDocument: true });
         E.agregarHistorial(chatId, 'bot', '📎 [Catálogo enviado: imagen + PDF]');
       }
-      await esperar(900);
+      await esperar(300);
     }
   } finally {
     enviandoBot.set(chatId, Date.now() + 3000);
@@ -288,7 +321,7 @@ function encolarIA(chatId, texto, ctx) {
   c.textos.push(texto);
   c.ctx = ctx;
   clearTimeout(c.timer);
-  c.timer = setTimeout(() => { if (!c.ocupado) procesarColaIA(chatId); }, 3000);
+  c.timer = setTimeout(() => { if (!c.ocupado) procesarColaIA(chatId); }, 1500);
 }
 async function procesarColaIA(chatId) {
   const c = colasIA.get(chatId);

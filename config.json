@@ -1,5 +1,5 @@
 {
-  "asistente": "Ultron",
+  "asistente": "Andrés",
   "motor": "local",
   "modeloHF": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "ventas": {
@@ -29,7 +29,7 @@
   "eslogan": "Transformamos ideas en soluciones digitales.",
   "moneda": "COP",
   "horario": "Lunes a viernes, 9:00 a. m. - 6:00 p. m.",
-  "bienvenida": "¡Hola! Soy *Ultron*, el asistente virtual de *TAKER*.\n\nSomos un equipo enfocado en desarrollo de software, inteligencia artificial y automatización de procesos.\n\nPodemos ayudarte a crear páginas web, tiendas online, sistemas personalizados y chatbots.\n\nCuéntanos qué proyecto tienes en mente y con gusto te asesoraremos.\n\n🕘 Horario de atención: Lunes a viernes, de 9:00 a. m. a 6:00 p. m.",
+  "bienvenida": "¡Hola! Soy *Andrés*, de *TAKER*.\n\nSomos un equipo enfocado en desarrollo de software, inteligencia artificial y automatización de procesos.\n\nPodemos ayudarte a crear páginas web, tiendas online, sistemas personalizados y chatbots.\n\nCuéntanos qué proyecto tienes en mente y con gusto te asesoraremos.\n\n🕘 Horario de atención: Lunes a viernes, de 9:00 a. m. a 6:00 p. m.",
   "contacto": {
     "email": "andresmontalvo.dev@gmail.com",
     "web": "https://andresmontalvo.vercel.app",
@@ -40,5 +40,6 @@
   "reinicioConversacionMinutos": 120,
   "puertoPanel": 3000,
   "probarConmigo": true,
-  "numerosIgnorados": []
+  "numerosIgnorados": [],
+  "diasInactividad": 14
 }

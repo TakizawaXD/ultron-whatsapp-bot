@@ -93,6 +93,25 @@
   .tabla button{padding:4px 10px;font-size:12px}
   .ficha{border-bottom:1px solid var(--borde);padding:10px 18px;font-size:12.5px;display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;background:var(--panel2)}
   .ficha b{color:var(--suave);font-weight:600}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:14px 16px}
+  .kpi .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+  .kpi .l{font-size:12px;color:var(--suave)}
+  .graficos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grafico{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px 18px;min-width:0}
+  .grafico.ancho{grid-column:1/-1}
+  .grafico h3{font-size:14px;font-weight:600}
+  .grafico .cuenta{font-size:12px;margin-bottom:10px}
+  .hbar{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
+  .hbar .et{color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hbar .pista{position:relative;height:20px}
+  .hbar .barra{height:100%;background:var(--marca);border-radius:0 4px 4px 0;min-width:2px}
+  .hbar .val{position:absolute;top:1px;font-variant-numeric:tabular-nums;color:var(--texto);font-size:12px;padding-left:6px}
+  .vbar svg{width:100%;height:180px;display:block}
+  .vbar rect.b{fill:var(--marca)} .vbar rect.b:hover{fill:var(--cian)}
+  .vbar text{fill:var(--tenue);font-size:10px}
+  .vbar line{stroke:var(--borde)}
+  @media (max-width:900px){.graficos{grid-template-columns:1fr}}
   h3.sub{font-size:14px;margin:6px 0 6px;color:var(--suave);font-weight:600}
   .seccion{grid-column:1/-1;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--cian);border-top:1px solid var(--borde);padding-top:14px;margin-top:4px}
   .seccion:first-child{border-top:none;padding-top:0;margin-top:0}
@@ -182,6 +201,7 @@
   <nav class="tabs" role="tablist">
     <button class="on" data-tab="tChats">Conversaciones</button>
     <button data-tab="tClientes">Clientes y demos</button>
+    <button data-tab="tAnalisis">Análisis</button>
     <button data-tab="tRespuestas">Respuestas del bot</button>
     <button data-tab="tCatalogo">Catálogo</button>
     <button data-tab="tConfig">Configuración</button>
@@ -203,6 +223,18 @@
   <section id="tClientes" class="tab">
     <p class="cuenta" style="margin-bottom:14px">Clientes con los que habló Ultron, los datos que recogió y sus demos. Cuando envíes una demo, márcala <b>Entregada</b>: ahí empiezan a contar los días y, al vencer, Ultron le escribe para cerrar la venta.</p>
     <div class="tabla-env"><table class="tabla" id="tablaClientes"></table></div>
+  </section>
+
+  <!-- ANÁLISIS -->
+  <section id="tAnalisis" class="tab">
+    <p class="cuenta" style="margin-bottom:14px">Datos reales de lo que hace el bot. Las cifras clave y los mensajes por día son de los últimos 30 días; el embudo y los servicios incluyen todas las conversaciones guardadas.</p>
+    <div class="kpis" id="kpis"></div>
+    <div class="graficos">
+      <div class="grafico"><h3>Embudo de ventas</h3><p class="cuenta">De la primera conversación a la venta</p><div id="gEmbudo"></div></div>
+      <div class="grafico"><h3>Servicios más pedidos</h3><p class="cuenta">Según lo que registra el bot en cada cliente</p><div id="gServicios"></div></div>
+      <div class="grafico ancho"><h3>Mensajes recibidos por día</h3><p class="cuenta">Últimos 30 días</p><div id="gDias"></div></div>
+      <div class="grafico ancho"><h3>¿A qué hora te escriben?</h3><p class="cuenta">Mensajes de clientes por hora del día: úsalo para saber cuándo estar atento</p><div id="gHoras"></div></div>
+    </div>
   </section>
 
   <!-- RESPUESTAS DEL BOT -->
@@ -352,7 +384,7 @@ function render() {
   const max = Math.max(1, ...dias);
   $('#barras').innerHTML = dias.map((n, i) => `<i style="height:${(n / max) * 100}%" title="${n} mensajes"></i>`).join('');
 
-  renderLista(); renderDetalle(); renderLogs(); renderClientes();
+  renderLista(); renderDetalle(); renderLogs(); renderClientes(); renderAnalisis();
 }
 
 // ---------- Respuestas del bot (vista previa) ----------
@@ -660,6 +692,82 @@ $('#formClave').addEventListener('click', (ev) => {
   const p = ev.target.dataset.borrar; if (!p) return;
   if (confirm('¿Quitar esta clave? Si es la del motor activo, el bot responderá con el menú clásico.')) accion(async () => { await api('/api/ultron/clave', 'POST', { clave: '', proveedor: p }); await estadoUltron(); }, 'Clave eliminada');
 });
+
+// ---------- Análisis de datos ----------
+const nf = new Intl.NumberFormat('es-CO');
+function barrasH(datos, total) {
+  if (!datos.length) return '<div class="vacio" style="padding:20px">Aún no hay datos</div>';
+  const max = Math.max(1, ...datos.map((d) => d.v));
+  return datos.map((d) => {
+    const pct = (d.v / max) * 100;
+    const extra = total ? ` · ${Math.round((d.v / Math.max(1, total)) * 100)}%` : '';
+    return `<div class="hbar" title="${esc(d.l)}: ${nf.format(d.v)}${extra}"><span class="et">${esc(d.l)}</span>
+      <span class="pista"><div class="barra" style="width:${pct}%"></div><span class="val" style="${pct > 70 ? `right:${100 - pct}%;padding:0 6px 0 0;color:#00131c;font-weight:600` : `left:${pct}%`}">${nf.format(d.v)}${extra}</span></span></div>`;
+  }).join('');
+}
+function barrasV(datos, cadaEtiqueta = 1) {
+  const W = 760, H = 180, abajo = 18, arriba = 14, n = datos.length;
+  const max = Math.max(1, ...datos.map((d) => d.v));
+  const ancho = W / n, gap = Math.min(4, ancho * 0.25);
+  const y = (v) => H - abajo - (v / max) * (H - abajo - arriba);
+  const barras = datos.map((d, i) => {
+    const x = i * ancho + gap / 2, w = Math.max(1, ancho - gap), top = y(d.v), h = H - abajo - top;
+    const r = Math.min(4, w / 2, h);
+    const forma = h > 0 ? `M${x},${H - abajo} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${H - abajo} Z` : '';
+    return `<g><title>${esc(d.t || d.l)}: ${nf.format(d.v)} mensajes</title>
+      <rect x="${i * ancho}" y="0" width="${ancho}" height="${H}" fill="transparent"/>${forma ? `<path class="b" d="${forma}" fill="var(--marca)"/>` : ''}
+      ${i % cadaEtiqueta === 0 ? `<text x="${x + w / 2}" y="${H - 4}" text-anchor="middle">${esc(d.l)}</text>` : ''}</g>`;
+  }).join('');
+  return `<div class="vbar"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Gráfico de barras">
+    <line x1="0" x2="${W}" y1="${H - abajo}" y2="${H - abajo}"/>
+    <text x="0" y="10">${nf.format(max)}</text>${barras}</svg></div>`;
+}
+function renderAnalisis() {
+  if (!estado) return;
+  const hoyMs = Date.now();
+  const dias = [...Array(30)].map((_, i) => new Date(hoyMs - (29 - i) * 864e5).toISOString().slice(0, 10));
+  const st = estado.stats.dias || {};
+  const suma = (k) => dias.reduce((a, d) => a + (st[d]?.[k] || 0), 0);
+  const chats = estado.chats.filter((c) => !String(c.nombre || '').includes('prueba'));
+  const ventas = chats.filter((c) => c.demo?.estado === 'contrato').length || suma('ventas');
+  const nuevos = suma('nuevos');
+  const kpis = [
+    ['Mensajes recibidos', suma('mensajes')],
+    ['Personas nuevas', nuevos],
+    ['Quieren contratar', suma('contratar')],
+    ['Cotizaciones', suma('cotizaciones')],
+    ['Demos solicitadas', suma('demos')],
+    ['Ventas cerradas', ventas],
+    ['Conversión', nuevos ? `${Math.round((ventas / nuevos) * 100)}%` : '—'],
+  ];
+  $('#kpis').innerHTML = kpis.map(([l, n]) => `<div class="kpi"><div class="n">${typeof n === 'number' ? nf.format(n) : n}</div><div class="l">${l}</div></div>`).join('');
+
+  const conIA = chats.filter((c) => c.estado === 'ultron' || c.ficha || c.demo || c.historial.some((h) => h.de === 'bot'));
+  const embudo = [
+    { l: 'Conversaron con el bot', v: conIA.length },
+    { l: 'Dieron datos', v: chats.filter((c) => c.ficha && Object.keys(c.ficha).length).length },
+    { l: 'Pidieron demo', v: chats.filter((c) => c.demo).length },
+    { l: 'Demo entregada', v: chats.filter((c) => ['entregada', 'vencida', 'contrato'].includes(c.demo?.estado)).length },
+    { l: 'Quieren contratar', v: chats.filter((c) => ['cotizacion_enviada', 'humano'].includes(c.estado) || c.demo?.estado === 'contrato').length },
+    { l: 'Contrataron', v: chats.filter((c) => c.demo?.estado === 'contrato').length },
+  ];
+  $('#gEmbudo').innerHTML = barrasH(embudo, conIA.length);
+
+  const cuenta = {};
+  for (const c of chats) {
+    const s = (c.ficha?.servicio || c.demo?.servicio || '').trim();
+    if (!s || /por confirmar/i.test(s)) continue;
+    const k = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    cuenta[k] = (cuenta[k] || 0) + 1;
+  }
+  $('#gServicios').innerHTML = barrasH(Object.entries(cuenta).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([l, v]) => ({ l, v })));
+
+  $('#gDias').innerHTML = barrasV(dias.map((d) => ({ l: d.slice(8), t: new Date(d + 'T12:00').toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'short' }), v: st[d]?.mensajes || 0 })), 3);
+
+  const horas = Array(24).fill(0);
+  for (const c of chats) for (const h of c.historial) if (h.de === 'cliente') horas[new Date(h.t).getHours()]++;
+  $('#gHoras').innerHTML = barrasV(horas.map((v, h) => ({ l: `${h}h`, t: `${h}:00 a ${h}:59`, v })), 2);
+}
 
 // ---------- Clientes y demos ----------
 const DEMO = { solicitada: ['🛠️ Por preparar', 'p-ambar'], entregada: ['📦 Entregada', 'p-azul'], vencida: ['⌛ Vencida', 'p-rojo'], contrato: ['🎉 Contrató', 'p-verde'], cancelada: ['✖️ Cancelada', 'p-gris'] };

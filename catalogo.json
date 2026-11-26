@@ -78,6 +78,97 @@
     ]
   },
   {
+    "id": "datos",
+    "nombre": "Análisis de datos y dashboards",
+    "descripcion": "",
+    "precioDesde": 700000,
+    "tiempo": "10 a 20 días",
+    "incluye": [
+      "Limpieza y organización de tus datos (Excel, ventas, inventario)",
+      "Dashboards interactivos con indicadores clave (KPIs)",
+      "Reportes automáticos de ventas, clientes y gastos",
+      "Informe con hallazgos y recomendaciones"
+    ]
+  },
+  {
+    "id": "landing",
+    "nombre": "Landing page",
+    "descripcion": "",
+    "precioDesde": 250000,
+    "tiempo": "3 a 5 días",
+    "incluye": [
+      "Página única enfocada en vender un producto o servicio",
+      "Botón de WhatsApp y formulario",
+      "Diseño adaptable a móviles",
+      "Publicación incluida"
+    ]
+  },
+  {
+    "id": "uxui",
+    "nombre": "Diseño UI/UX y prototipos",
+    "descripcion": "",
+    "precioDesde": 350000,
+    "tiempo": "5 a 10 días",
+    "incluye": [
+      "Investigación de usuarios y flujo de navegación",
+      "Diseño de pantallas en Figma",
+      "Prototipo navegable",
+      "Guía de estilos (colores, tipografías, componentes)"
+    ]
+  },
+  {
+    "id": "seo",
+    "nombre": "Posicionamiento en Google (SEO)",
+    "descripcion": "",
+    "precioDesde": 300000,
+    "tiempo": "2 a 4 semanas",
+    "incluye": [
+      "Auditoría de tu sitio web",
+      "Optimización de velocidad y contenido",
+      "Alta en Google Business Profile",
+      "Informe de palabras clave y resultados"
+    ]
+  },
+  {
+    "id": "hosting",
+    "nombre": "Dominio, hosting y correos corporativos",
+    "descripcion": "",
+    "precioDesde": 150000,
+    "tiempo": "1 a 3 días",
+    "incluye": [
+      "Configuración de dominio propio (.com, .co)",
+      "Hosting para tu sitio",
+      "Correos con tu dominio (tunombre@tuempresa.com)",
+      "Certificado de seguridad SSL (el costo del dominio y hosting va aparte)"
+    ]
+  },
+  {
+    "id": "migracion",
+    "nombre": "Modernización y migración de sistemas",
+    "descripcion": "",
+    "precioDesde": 900000,
+    "tiempo": "20 a 40 días",
+    "incluye": [
+      "Análisis del sistema actual",
+      "Migración de datos sin pérdidas",
+      "Nueva versión web moderna y segura",
+      "Acompañamiento en el cambio"
+    ]
+  },
+  {
+    "id": "consultoria",
+    "nombre": "Consultoría y capacitación tecnológica",
+    "descripcion": "",
+    "precioDesde": 150000,
+    "tiempo": "Por sesión",
+    "incluye": [
+      "Diagnóstico tecnológico de tu negocio",
+      "Plan de digitalización paso a paso",
+      "Capacitación en herramientas digitales",
+      "Sesiones virtuales o presenciales"
+    ]
+  },
+  {
     "id": "whatsapp",
     "nombre": "Chatbot para WhatsApp",
     "adicional": true,
@@ -112,5 +203,41 @@
     "precioDesde": 700000,
     "tiempo": "",
     "incluye": []
+  },
+  {
+    "id": "pagos",
+    "nombre": "Integración de pagos en línea",
+    "descripcion": "",
+    "precioDesde": 300000,
+    "tiempo": "",
+    "incluye": [],
+    "adicional": true
+  },
+  {
+    "id": "dashboard",
+    "nombre": "Dashboard de ventas en tiempo real",
+    "descripcion": "",
+    "precioDesde": 500000,
+    "tiempo": "",
+    "incluye": [],
+    "adicional": true
+  },
+  {
+    "id": "reportes",
+    "nombre": "Extracción de datos y reportes automáticos",
+    "descripcion": "",
+    "precioDesde": 450000,
+    "tiempo": "",
+    "incluye": [],
+    "adicional": true
+  },
+  {
+    "id": "marketing",
+    "nombre": "Automatización de marketing (WhatsApp y correo)",
+    "descripcion": "",
+    "precioDesde": 500000,
+    "tiempo": "",
+    "incluye": [],
+    "adicional": true
   }
 ]

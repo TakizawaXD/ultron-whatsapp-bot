@@ -420,15 +420,46 @@ ${nombre}: ¡Claro! ¿Qué es lo que más te hace dudar: el precio o cómo queda
 async function conversarLocal(base, ctx) {
   const salida = [];
   const est = { salida, efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false }, catalogoEnviado: false };
-  const historial = base.slice(0, -1).slice(-8);
+  const historial = base.slice(0, -1).slice(-6);
   const contexto = textoContexto(ctx).replace(/^# Contexto de este cliente\n/, '');
   const ultimo = base[base.length - 1].content;
   const texto = contexto ? `[Contexto interno, no lo menciones: ${contexto.replace(/\n/g, ' | ')}]\n${ultimo}` : ultimo;
-  const herramientas = HERRAMIENTAS.map((h) => ({ ...h, handler: (params) => ejecutarHerramienta(h.name, params, est) }));
-  const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto, herramientas });
-  const limpio = limpiarPensamiento(respuesta).replace(/^(Ultron|Asistente|Asesor)\s*:\s*/i, '').trim();
+  // Sin herramientas: el modelo pequeño casi no las usa y alargan cada consulta.
+  // Las intenciones importantes se detectan con frases clave (más rápido y más fiable).
+  detectarIntenciones(ultimo, historial, ctx, est);
+  const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto });
+  const nombre = cargarDatos().config.asistente || 'Ultron';
+  const limpio = limpiarPensamiento(respuesta).replace(new RegExp(`^(${nombre}|Ultron|Asistente|Asesor)\\s*:\\s*`, 'i'), '').trim();
   if (limpio) salida.push({ tipo: 'texto', texto: limpio });
   return est;
+}
+
+// Frases clave del cliente → avisos y registros (para el motor local)
+function detectarIntenciones(texto, historial, ctx, est) {
+  const t = ` ${String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} `;
+  const ultimoBot = String([...historial].reverse().find((h) => h.role === 'assistant')?.content || '').toLowerCase();
+  if (/(no me interesa|no me escrib|no me molest|deja de escribir|no quiero (nada|mas mensajes))/.test(t)) {
+    est.efectos.noContactar = true;
+    return;
+  }
+  if (/(hablar|comunicar|atender).{0,20}(persona|humano|asesor|andres|alguien)|eres (un )?(bot|robot|maquina)/.test(t)) {
+    if (!/eres (un )?(bot|robot|maquina)/.test(t)) est.efectos.asesor = { motivo: 'pide_humano', resumen: `Pidió hablar con una persona: "${texto}"` };
+  }
+  if (/(quiero|deseo|vamos a|me gustaria|listo para) (contratar|comprar|empezar|arrancar|iniciar|hacerlo)|como (te )?pago|donde (te )?pago|me interesa contratar|cerremos|hagamoslo/.test(t)) {
+    est.efectos.asesor = { motivo: 'quiere_contratar', resumen: `Quiere contratar: "${texto}"` };
+  }
+  if (/(descuento|rebaja|mas barato)/.test(t) && !est.efectos.asesor) {
+    est.efectos.asesor = { motivo: 'descuento_solicitado', resumen: `Pregunta por descuento: "${texto}"` };
+  }
+  const aceptaDemo = /demo/.test(ultimoBot) && /^ (si|sii|dale|ok|okay|listo|claro|de una|perfecto|bueno|me parece|hagamoslo|armala|quiero la demo)/.test(t);
+  if ((aceptaDemo || /quiero (la|una) demo|(armen|hagan|preparen)(me)? (la|una) demo/.test(t)) && ctx.demo?.estado !== 'solicitada') {
+    est.efectos.demo = { servicio: ctx.ficha?.servicio || 'por confirmar', negocio: ctx.ficha?.negocio || 'por confirmar', detalles: `Aceptó la demo con: "${texto}"` };
+  }
+  if (/(lo pienso|lo voy a pensar|despues te (escribo|aviso)|mas adelante|otro dia)/.test(t) && /(te escribo|escribirte|te contacto)/.test(ultimoBot)) {
+    est.efectos.seguimientoAutorizado = true;
+  }
+  const correo = String(texto).match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+  if (correo) est.efectos.ficha.email = correo[0];
 }
 
 async function conversar(historial, texto, ctx = {}) {

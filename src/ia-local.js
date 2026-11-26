@@ -46,7 +46,7 @@ function generar(o) {
   return tarea;
 }
 
-async function generarAhora({ sistema, historial = [], texto, herramientas = [], maxTokens = 320 }) {
+async function generarAhora({ sistema, historial = [], texto, herramientas = [], maxTokens = 180 }) {
   const m = await cargar();
   const sesion = new m.LlamaChatSession({ contextSequence: m.secuencia, autoDisposeSequence: false });
   try {
