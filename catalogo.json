@@ -1,243 +1,162 @@
 [
   {
     "id": "web",
-    "nombre": "Páginas web",
-    "descripcion": "",
+    "nombre": "Páginas web profesionales",
+    "descripcion": "Tu negocio visible y confiable en internet, las 24 horas.",
     "precioDesde": 400000,
     "tiempo": "5 a 10 días",
-    "incluye": [
-      "Diseño moderno y adaptable a móviles",
-      "Secciones personalizadas",
-      "Formulario de contacto o WhatsApp",
-      "Publicación y configuración del sitio"
-    ]
+    "incluye": ["Sitios corporativos, de empresa o personales", "Diseño adaptable a celulares", "Botón de WhatsApp y formulario de contacto"]
   },
   {
     "id": "tienda",
-    "nombre": "Tiendas online",
-    "descripcion": "",
+    "nombre": "Tiendas virtuales",
+    "descripcion": "Vende tus productos en línea sin depender de un local.",
     "precioDesde": 800000,
     "tiempo": "10 a 20 días",
-    "incluye": [
-      "Catálogo de productos",
-      "Carrito de compras",
-      "Gestión de productos",
-      "Integración de medios de contacto y pedidos"
-    ]
+    "incluye": ["Catálogo de productos", "Carrito de compras", "Gestión de pedidos y ventas"]
+  },
+  {
+    "id": "administrativo",
+    "nombre": "Sistemas administrativos",
+    "descripcion": "Toda la operación de tu empresa organizada en un solo lugar.",
+    "precioDesde": 900000,
+    "tiempo": "",
+    "incluye": ["Clientes y empleados", "Control de operaciones", "Reportes de gestión"]
+  },
+  {
+    "id": "inventario",
+    "nombre": "Sistemas de inventario",
+    "descripcion": "Sabe en todo momento qué tienes, qué sale y qué falta.",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": ["Registro de productos", "Control de existencias", "Historial de entradas y salidas"]
+  },
+  {
+    "id": "pos",
+    "nombre": "Sistemas POS y facturación",
+    "descripcion": "Vende más rápido y lleva la caja en orden.",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": ["Registro de ventas", "Control de caja", "Productos y precios"]
+  },
+  {
+    "id": "whatsapp",
+    "nombre": "Chatbots para WhatsApp",
+    "descripcion": "Atiende y toma pedidos por WhatsApp aunque no estés conectado.",
+    "precioDesde": 800000,
+    "tiempo": "7 a 15 días",
+    "incluye": ["Respuestas automáticas", "Toma de pedidos", "Mensajes comerciales"]
+  },
+  {
+    "id": "chatbot-ia",
+    "nombre": "Chatbots inteligentes con IA",
+    "descripcion": "Un asistente que entiende a tus clientes y responde con naturalidad.",
+    "precioDesde": 600000,
+    "tiempo": "7 a 15 días",
+    "incluye": ["Asistente virtual personalizado", "Conversaciones con inteligencia artificial", "Entrenado con la información de tu negocio"]
+  },
+  {
+    "id": "automatizacion",
+    "nombre": "Automatización empresarial",
+    "descripcion": "Deja que el software haga las tareas repetitivas por tu equipo.",
+    "precioDesde": 600000,
+    "tiempo": "",
+    "incluye": ["Tareas automáticas", "Procesos sin pasos manuales", "Menos errores y más tiempo libre"]
+  },
+  {
+    "id": "crm",
+    "nombre": "Sistemas CRM",
+    "descripcion": "No vuelvas a perder un cliente por falta de seguimiento.",
+    "precioDesde": 900000,
+    "tiempo": "",
+    "incluye": ["Base de clientes", "Oportunidades de venta", "Seguimiento comercial"]
+  },
+  {
+    "id": "reservas",
+    "nombre": "Sistemas de reservas y citas",
+    "descripcion": "Tus clientes agendan solos y tú ves tu agenda al día.",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": ["Agendamiento en línea", "Disponibilidad de horarios", "Administración de citas"]
   },
   {
     "id": "app",
     "nombre": "Aplicaciones móviles",
-    "descripcion": "",
+    "descripcion": "Tu negocio en el celular de tus clientes.",
     "precioDesde": 1200000,
     "tiempo": "20 a 35 días",
-    "incluye": [
-      "Diseño de interfaz",
-      "Desarrollo multiplataforma",
-      "Integración con bases de datos",
-      "Funcionalidades personalizadas"
-    ]
-  },
-  {
-    "id": "sistema",
-    "nombre": "Sistemas a medida",
-    "descripcion": "",
-    "precioDesde": 700000,
-    "tiempo": "15 a 30 días",
-    "incluye": [
-      "Panel administrativo",
-      "Gestión de usuarios y permisos",
-      "Bases de datos",
-      "Automatización de procesos"
-    ]
-  },
-  {
-    "id": "bot",
-    "nombre": "Bots y chatbots",
-    "descripcion": "",
-    "precioDesde": 600000,
-    "tiempo": "7 a 15 días",
-    "incluye": [
-      "Chatbots personalizados",
-      "Automatización de respuestas",
-      "Integración con inteligencia artificial",
-      "Gestión de consultas y clientes"
-    ]
-  },
-  {
-    "id": "soporte",
-    "nombre": "Mantenimiento y soporte",
-    "descripcion": "",
-    "precioDesde": 100000,
-    "tiempo": "Según el requerimiento",
-    "incluye": [
-      "Corrección de errores",
-      "Actualizaciones",
-      "Optimización",
-      "Soporte técnico"
-    ]
-  },
-  {
-    "id": "datos",
-    "nombre": "Análisis de datos y dashboards",
-    "descripcion": "",
-    "precioDesde": 700000,
-    "tiempo": "10 a 20 días",
-    "incluye": [
-      "Limpieza y organización de tus datos (Excel, ventas, inventario)",
-      "Dashboards interactivos con indicadores clave (KPIs)",
-      "Reportes automáticos de ventas, clientes y gastos",
-      "Informe con hallazgos y recomendaciones"
-    ]
-  },
-  {
-    "id": "landing",
-    "nombre": "Landing page",
-    "descripcion": "",
-    "precioDesde": 250000,
-    "tiempo": "3 a 5 días",
-    "incluye": [
-      "Página única enfocada en vender un producto o servicio",
-      "Botón de WhatsApp y formulario",
-      "Diseño adaptable a móviles",
-      "Publicación incluida"
-    ]
-  },
-  {
-    "id": "uxui",
-    "nombre": "Diseño UI/UX y prototipos",
-    "descripcion": "",
-    "precioDesde": 350000,
-    "tiempo": "5 a 10 días",
-    "incluye": [
-      "Investigación de usuarios y flujo de navegación",
-      "Diseño de pantallas en Figma",
-      "Prototipo navegable",
-      "Guía de estilos (colores, tipografías, componentes)"
-    ]
-  },
-  {
-    "id": "seo",
-    "nombre": "Posicionamiento en Google (SEO)",
-    "descripcion": "",
-    "precioDesde": 300000,
-    "tiempo": "2 a 4 semanas",
-    "incluye": [
-      "Auditoría de tu sitio web",
-      "Optimización de velocidad y contenido",
-      "Alta en Google Business Profile",
-      "Informe de palabras clave y resultados"
-    ]
-  },
-  {
-    "id": "hosting",
-    "nombre": "Dominio, hosting y correos corporativos",
-    "descripcion": "",
-    "precioDesde": 150000,
-    "tiempo": "1 a 3 días",
-    "incluye": [
-      "Configuración de dominio propio (.com, .co)",
-      "Hosting para tu sitio",
-      "Correos con tu dominio (tunombre@tuempresa.com)",
-      "Certificado de seguridad SSL (el costo del dominio y hosting va aparte)"
-    ]
-  },
-  {
-    "id": "migracion",
-    "nombre": "Modernización y migración de sistemas",
-    "descripcion": "",
-    "precioDesde": 900000,
-    "tiempo": "20 a 40 días",
-    "incluye": [
-      "Análisis del sistema actual",
-      "Migración de datos sin pérdidas",
-      "Nueva versión web moderna y segura",
-      "Acompañamiento en el cambio"
-    ]
-  },
-  {
-    "id": "consultoria",
-    "nombre": "Consultoría y capacitación tecnológica",
-    "descripcion": "",
-    "precioDesde": 150000,
-    "tiempo": "Por sesión",
-    "incluye": [
-      "Diagnóstico tecnológico de tu negocio",
-      "Plan de digitalización paso a paso",
-      "Capacitación en herramientas digitales",
-      "Sesiones virtuales o presenciales"
-    ]
-  },
-  {
-    "id": "whatsapp",
-    "nombre": "Chatbot para WhatsApp",
-    "adicional": true,
-    "descripcion": "",
-    "precioDesde": 800000,
-    "tiempo": "",
-    "incluye": []
+    "incluye": ["Apps para Android", "Desarrollo multiplataforma", "Funciones según tu necesidad"]
   },
   {
     "id": "api",
-    "nombre": "Desarrollo de API y backend",
-    "adicional": true,
-    "descripcion": "",
+    "nombre": "Desarrollo de APIs y backend",
+    "descripcion": "La base técnica para conectar tus sistemas y aplicaciones.",
     "precioDesde": 500000,
     "tiempo": "",
-    "incluye": []
+    "incluye": ["Servicios REST", "Autenticación de usuarios", "Integración con bases de datos y otros sistemas"]
   },
   {
-    "id": "automatizaciones",
-    "nombre": "Automatizaciones",
-    "adicional": true,
-    "descripcion": "",
-    "precioDesde": 600000,
+    "id": "bd",
+    "nombre": "Bases de datos",
+    "descripcion": "Información ordenada, segura y lista para usarse.",
+    "precioDesde": 400000,
     "tiempo": "",
-    "incluye": []
-  },
-  {
-    "id": "ia",
-    "nombre": "Integración de inteligencia artificial",
-    "adicional": true,
-    "descripcion": "",
-    "precioDesde": 700000,
-    "tiempo": "",
-    "incluye": []
-  },
-  {
-    "id": "pagos",
-    "nombre": "Integración de pagos en línea",
-    "descripcion": "",
-    "precioDesde": 300000,
-    "tiempo": "",
-    "incluye": [],
-    "adicional": true
+    "incluye": ["Diseño de la base de datos", "Estructuración de la información", "Conexión con tus sistemas"]
   },
   {
     "id": "dashboard",
-    "nombre": "Dashboard de ventas en tiempo real",
-    "descripcion": "",
+    "nombre": "Dashboards y analítica",
+    "descripcion": "Decide con datos: tus números claros en una sola pantalla.",
     "precioDesde": 500000,
     "tiempo": "",
-    "incluye": [],
-    "adicional": true
+    "incluye": ["Estadísticas e indicadores", "Gráficos interactivos", "Informes"]
   },
   {
-    "id": "reportes",
-    "nombre": "Extracción de datos y reportes automáticos",
-    "descripcion": "",
-    "precioDesde": 450000,
+    "id": "educativa",
+    "nombre": "Plataformas educativas",
+    "descripcion": "Enseña en línea con tu propia plataforma de cursos.",
+    "precioDesde": 900000,
     "tiempo": "",
-    "incluye": [],
-    "adicional": true
+    "incluye": ["Cursos y usuarios", "Evaluaciones", "Seguimiento del avance de los estudiantes"]
   },
   {
-    "id": "marketing",
-    "nombre": "Automatización de marketing (WhatsApp y correo)",
-    "descripcion": "",
-    "precioDesde": 500000,
+    "id": "clasificados",
+    "nombre": "Plataformas de anuncios y clasificados",
+    "descripcion": "Un espacio donde tus usuarios publican y encuentran lo que buscan.",
+    "precioDesde": 1000000,
     "tiempo": "",
-    "incluye": [],
-    "adicional": true
+    "incluye": ["Publicación de anuncios", "Perfiles de usuario", "Búsqueda y gestión de anuncios"]
+  },
+  {
+    "id": "ia",
+    "nombre": "Inteligencia artificial personalizada",
+    "descripcion": "Lleva la IA a los procesos de tu empresa.",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": ["Integración de modelos de IA", "Asistentes especializados", "Adaptada a tu negocio"]
+  },
+  {
+    "id": "notificaciones",
+    "nombre": "Sistemas de notificaciones",
+    "descripcion": "Avisa a tus clientes y a tu equipo en el momento justo.",
+    "precioDesde": 400000,
+    "tiempo": "",
+    "incluye": ["Correos automáticos", "Alertas", "Notificaciones programadas"]
+  },
+  {
+    "id": "soporte",
+    "nombre": "Mantenimiento y optimización de software",
+    "descripcion": "Mantén tu sistema funcionando bien y al día.",
+    "precioDesde": 100000,
+    "tiempo": "Según el requerimiento",
+    "incluye": ["Corrección de errores", "Mejoras", "Actualizaciones"]
+  },
+  {
+    "id": "medida",
+    "nombre": "Software a la medida",
+    "descripcion": "Si tu negocio tiene una necesidad única, la resolvemos.",
+    "precioDesde": 700000,
+    "tiempo": "",
+    "incluye": ["Análisis de tu necesidad", "Desarrollo personalizado", "Pensado para crecer con tu empresa"]
   }
 ]

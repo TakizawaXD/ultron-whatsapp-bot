@@ -13,12 +13,29 @@ const MAX_LOGS = 300;
 const bus = new EventEmitter();
 bus.setMaxListeners(50);
 
-const leer = (f, def) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return def; } };
+// Lee un JSON; si el archivo está dañado usa la copia anterior (.bak) en vez de empezar vacío
+const leer = (f, def) => {
+  for (const ruta of [f, `${f}.bak`]) {
+    try { return JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) {
+      if (e.code !== 'ENOENT') console.error(`⚠️  No se pudo leer ${path.basename(ruta)}: ${e.message}`);
+    }
+  }
+  return def;
+};
+// Escritura segura: archivo temporal + renombrar, y se conserva la versión anterior como .bak.
+// Si el proceso muere a mitad de escritura, el archivo bueno sigue ahí.
+function escribirSeguro(f, datos) {
+  const tmp = `${f}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(datos, null, 2));
+  if (fs.existsSync(f)) fs.copyFileSync(f, `${f}.bak`);
+  fs.renameSync(tmp, f);
+}
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 // { [chatId]: { estado, ultimo, pausadoHasta, nombre, numero, historial: [{de, texto, t}] } }
 const sesiones = leer(F_SESIONES, {});
-const control = leer(F_CONTROL, { activo: true, stats: {} });
+// En una instalación nueva el bot arranca APAGADO: lo enciendes en el panel cuando ya esté configurado
+const control = leer(F_CONTROL, { activo: false, stats: {} });
 control.stats ||= {};
 // Respuesta automática por persona: { [chatId]: 'siempre' | 'nunca' } (sin entrada = automática)
 control.modoChat ||= {};
@@ -26,13 +43,19 @@ control.modoChat ||= {};
 const vivo = { conexion: 'iniciando', qr: null, cuenta: null, logs: [] };
 
 let tGuardar;
+function guardarYa() {
+  clearTimeout(tGuardar);
+  try {
+    fs.mkdirSync(DATA, { recursive: true });
+    escribirSeguro(F_SESIONES, sesiones);
+    escribirSeguro(F_CONTROL, control);
+  } catch (e) {
+    console.error('❌ No se pudieron guardar los datos:', e.message);
+  }
+}
 function guardar() {
   clearTimeout(tGuardar);
-  tGuardar = setTimeout(() => {
-    fs.mkdirSync(DATA, { recursive: true });
-    fs.writeFileSync(F_SESIONES, JSON.stringify(sesiones, null, 2));
-    fs.writeFileSync(F_CONTROL, JSON.stringify(control, null, 2));
-  }, 300);
+  tGuardar = setTimeout(guardarYa, 300);
   bus.emit('cambio');
 }
 
@@ -87,4 +110,4 @@ function snapshot() {
   };
 }
 
-module.exports = { bus, sesiones, control, vivo, guardar, log, contar, agregarHistorial, pausar, setVivo, snapshot };
+module.exports = { bus, sesiones, control, vivo, guardar, guardarYa, log, contar, agregarHistorial, pausar, setVivo, snapshot };

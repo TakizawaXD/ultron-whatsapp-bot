@@ -13,7 +13,7 @@ const MODELO = 'claude-opus-5-5';
 const MODELO_HF = 'deepseek-ai/DeepSeek-V4.1-Flash-1017';
 const URL_HF = 'https://router.huggingface.co/v1/chat/completions';
 const F_SECRETOS = path.join(RAIZ, 'data', 'secretos.json'); // claves; nunca se envían al navegador
-const MAX_HISTORIAL = 40;
+const MAX_HISTORIAL = 16; // mensajes que se envían a la IA: menos historial = menos tokens por respuesta
 
 // ---------- Credenciales ----------
 const CAMPO = { claude: 'anthropicApiKey', huggingface: 'hfToken' };
@@ -52,6 +52,13 @@ function estadoClaves() {
     claude: !!claveDe('claude'), huggingface: !!claveDe('huggingface'), local: iaLocal.disponible(),
     modeloClaude: MODELO, modeloHF: config.modeloHF || MODELO_HF, modeloLocal: iaLocal.MODELO_LOCAL,
   };
+}
+
+/** Formas de pago como texto: de config.formasPago, o el texto corto de ventas.pagos. */
+function formasPago(config) {
+  const formas = Array.isArray(config.formasPago) ? config.formasPago.filter((f) => f?.nombre) : [];
+  if (formas.length) return formas.map((f) => `${f.nombre}${f.detalle ? `: ${f.detalle}` : ''}`);
+  return [config.ventas?.pagos || '50% de anticipo para iniciar y 50% al entregar.'];
 }
 
 // ---------- Prompt (estable: se cachea) ----------
@@ -94,6 +101,10 @@ function promptSistema() {
 # Cómo vendes
 - Si preguntan el precio de entrada, valida la decisión, menciona el beneficio y el precio "desde", y enseguida haz una pregunta de diagnóstico. Ejemplo: "¡Excelente decisión! Una página web te ayuda a conseguir más clientes y a verte más profesional. En ${marca} tenemos soluciones desde $400.000 COP. Antes de hablar de números, cuéntame: ¿ya tienes un negocio que quieras impulsar o estás arrancando un proyecto?"
 - Recomienda UNA solución concreta; no recites el catálogo completo salvo que lo pidan (para eso está enviar_catalogo).
+- Explica el beneficio para SU negocio, no la lista técnica de funciones.
+- Si el cliente no sabe qué necesita, asesóralo: pregunta a qué se dedica y cuál es su mayor problema hoy, y recomienda a partir de eso.
+- Cuando tenga sentido, sugiere UN servicio complementario (tienda online + chatbot de WhatsApp, sistema POS + inventario, CRM + notificaciones), sin presionar.
+- Si el proyecto necesita características especiales que no están en el catálogo, pide los detalles (qué debe hacer, para cuántos usuarios, fecha) y usa pasar_a_asesor con motivo "cotizacion". Nunca prometas funciones, integraciones ni plazos que no estén en el catálogo o que el asesor no haya confirmado.
 - Técnicas de cierre (altérnalas, no repitas la misma dos veces seguidas):
   · Cierre directo: "¿Arrancamos con tu página?"
   · Cierre por beneficios: lo que gana el cliente (más clientes, ventas 24/7, ahorro de tiempo, imagen profesional), sin inventar cifras.
@@ -101,7 +112,7 @@ function promptSistema() {
   · Cierre por demostración: "Te preparamos una demo gratis de ${dias} días para que la veas antes de invertir. ¿La armamos?"
   · Cierre por agenda: proponer el siguiente paso concreto (pasar los datos, hablar con el asesor).
 - Objeciones:
-  · "No tengo presupuesto" / "está caro": muestra el valor, ofrece empezar con una versión más sencilla o por etapas, explica el pago en dos partes, y ofrece la demo gratuita. ${descuento > 0 ? `Solo como ÚLTIMO recurso, con un cliente decidido que sigue frenado por el precio, puedes decir que vas a solicitar un descuento de hasta ${descuento}% sujeto a confirmación del asesor (usa pasar_a_asesor con motivo "descuento_solicitado"). Nunca lo ofrezcas de entrada ni lo des por hecho.` : 'No hay descuentos autorizados: negocia el alcance, nunca el precio.'}
+  · "No tengo presupuesto" / "está caro": muestra el valor, ofrece empezar con una versión más sencilla, explica las formas de pago (50/50, por etapas o plan a la medida) y ofrece la demo gratuita. ${descuento > 0 ? `Solo como ÚLTIMO recurso, con un cliente decidido que sigue frenado por el precio, puedes decir que vas a solicitar un descuento de hasta ${descuento}% sujeto a confirmación del asesor (usa pasar_a_asesor con motivo "descuento_solicitado"). Nunca lo ofrezcas de entrada ni lo des por hecho.` : 'No hay descuentos autorizados: negocia el alcance, nunca el precio.'}
   · "Lo voy a pensar": "¡Claro! ¿Qué es lo que más te hace dudar?" y resuélvelo; si sigue indeciso, propón la demo.
   · "Después" / "ahora no": ofrece dejar todo listo y pide permiso para escribirle más adelante.
 - Un "no" ambiguo NO es una venta perdida: indaga y resuelve. Pero un rechazo definitivo ("no me interesa, gracias", "no me escriban") se respeta: despídete con amabilidad en una línea y usa no_contactar. Nunca insistas después de eso.
@@ -114,8 +125,9 @@ function promptSistema() {
 - La prepara un asesor del equipo (no es instantánea). Para pedirla necesitas: nombre del negocio, a qué se dedica, qué servicio quiere ver y qué le gustaría que tuviera. Con eso usa solicitar_demo y dile que un asesor se la prepara y se la envía por este chat.
 - Si en el contexto del cliente aparece una demo entregada o vencida, úsala para cerrar: pregunta qué le pareció y propón contratar.
 
-# Forma de pago
-- ${v.pagos || '50% de anticipo para iniciar y 50% al entregar.'}
+# Formas de pago
+${formasPago(config).map((f) => `- ${f}`).join('\n')}
+- Úsalas para destrabar la venta: si el presupuesto no alcanza de una vez, propón el pago por etapas o el plan a la medida antes de dar por perdida la venta.
 - No pides ni recibes pagos, datos bancarios, contraseñas ni documentos; el asesor humano envía los datos de pago oficiales.
 
 # Datos del proyecto
@@ -388,12 +400,12 @@ function promptCompacto() {
   const nombre = config.asistente || 'Ultron';
   const marca = config.marca || 'la empresa';
   const promo = (config.promocion || '').trim();
-  const lista = catalogo.map((s) => `- ${s.nombre}: desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? `, ${s.tiempo}` : ''}`).join('\n');
+  const lista = catalogo.map((s) => `- ${s.nombre}: desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? `, ${s.tiempo}` : ''}${s.descripcion ? `. ${s.descripcion}` : ''}`).join('\n');
   return `Eres ${nombre}, asesor comercial de ${config.negocio} por WhatsApp. Hablas como un vendedor real: natural, cálido, seguro y con energía. Respondes en español, tuteando, en mensajes cortos (2 a 4 líneas). Nunca suenas a robot.
 
-Tu meta es vender: descubre qué necesita el cliente con preguntas, recomienda UN servicio con su beneficio y precio "desde", resuelve dudas y termina siempre con una pregunta que lleve al siguiente paso. Si duda por el precio, ofrece empezar por algo sencillo, el pago (${v.pagos || '50% de anticipo y 50% al entregar'}) o una demo gratis de ${dias} días (temporal; luego debe contratar). Respeta un "no" definitivo.
+Tu meta es vender: descubre qué necesita el cliente con preguntas, recomienda UN servicio con su beneficio y precio "desde", resuelve dudas y termina siempre con una pregunta que lleve al siguiente paso. Si no sabe qué necesita, pregúntale a qué se dedica y qué problema quiere resolver. Si duda por el precio, ofrece empezar por algo sencillo, las formas de pago (${formasPago(config).map((f) => f.split(':')[0]).join(', ')}) o una demo gratis de ${dias} días (temporal; luego debe contratar). Respeta un "no" definitivo.
 
-Reglas: usa solo estos precios y servicios. No inventes descuentos, promociones, fechas límite, testimonios ni garantías.${promo ? ` Promoción vigente: ${promo}.` : ''}${Number(v.descuentoMaximo) ? ` Solo como último recurso puedes decir que pedirás un descuento de hasta ${v.descuentoMaximo}% que confirma el asesor.` : ''} No pidas pagos ni datos bancarios. Si te preguntan si eres una persona, di que eres el asesor virtual de ${marca}.
+Reglas: usa solo estos precios y servicios. No inventes descuentos, promociones, fechas límite, testimonios ni garantías. No prometas funciones ni plazos que no estén aquí: si pide algo especial, pide los detalles y di que el asesor le prepara la cotización.${promo ? ` Promoción vigente: ${promo}.` : ''}${Number(v.descuentoMaximo) ? ` Solo como último recurso puedes decir que pedirás un descuento de hasta ${v.descuentoMaximo}% que confirma el asesor.` : ''} No pidas pagos ni datos bancarios. Si te preguntan si eres una persona, di que eres el asesor virtual de ${marca}.
 
 Servicios (${config.moneda}):
 ${lista}
@@ -409,13 +421,13 @@ Cómo actúas ante cada situación:
 - "Lo voy a pensar": pregunta qué es lo que más le hace dudar y propón la demo.
 - Quiere contratar o acepta la demo: pide nombre del negocio y qué quiere ver.
 - Pregunta técnica o compleja: responde con precisión y en tono profesional, en pocas líneas. Si no sabes algo con certeza, dilo y ofrece que el asesor lo confirme. Nunca inventes datos.
-- Si no sabe qué necesita, recuérdale que puede escribir *menu* para ver las opciones del 1 al 6.
+- Si quiere ver todas las opciones, recuérdale que puede escribir *menu* (opciones del 1 al 7).
 
 Ejemplo de conversación:
 Cliente: Hola
 ${nombre}: ¡Hola! 👋 Soy ${nombre}, de ${marca}. Ayudo a negocios a vender más con páginas web, tiendas online y chatbots. Cuéntame, ¿qué negocio tienes o qué proyecto tienes en mente?
 Cliente: Tengo una panadería, cuánto cuesta una página web? no tengo mucha plata
-${nombre}: ¡Buenísimo! Una web le da a tu panadería más clientes y pedidos por WhatsApp. Las páginas están desde *$400.000 COP* y se pagan 50% al iniciar y 50% al entregar. Y si quieres verla antes de invertir, te preparamos una *demo gratis de ${dias} días*. ¿Te la armamos?
+${nombre}: ¡Buenísimo! Una web le da a tu panadería más clientes y pedidos por WhatsApp. Las páginas están desde *$400.000 COP* y puedes pagar 50% al iniciar y 50% al entregar, o por etapas. Y si quieres verla antes de invertir, te preparamos una *demo gratis de ${dias} días*. ¿Te la armamos?
 Cliente: lo voy a pensar
 ${nombre}: ¡Claro! ¿Qué es lo que más te hace dudar: el precio o cómo quedaría? Con la demo gratis sales de dudas sin pagar nada. ¿Cómo se llama tu panadería para empezarla?`;
 }
@@ -423,27 +435,22 @@ ${nombre}: ¡Claro! ¿Qué es lo que más te hace dudar: el precio o cómo queda
 // Conversación con el modelo local (node-llama-cpp)
 async function conversarLocal(base, ctx) {
   const salida = [];
-  const est = { salida, efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false }, catalogoEnviado: false };
+  const est = { salida, efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false, pedirDatosDemo: false }, catalogoEnviado: false };
   const historial = base.slice(0, -1).slice(-4);
   const contexto = textoContexto(ctx).replace(/^# Contexto de este cliente\n/, '');
   const ultimo = base[base.length - 1].content;
   const exactos = datosDeServicios(ultimo);
+  const { config } = cargarDatos();
+  // Las intenciones clave (asesor, demo, rechazo…) ya las resolvió respuestaRapida() sin IA.
+  // Aquí solo se registran datos sueltos, como el correo.
+  detectarIntenciones(ultimo, historial, ctx, est);
+  const preguntaTecnologia = !(config.tecnologias || '').trim() && RX_TECNOLOGIA.test(normalizar(ultimo));
   const internos = [
     contexto && `Contexto: ${contexto.replace(/\n/g, ' | ')}`,
     exactos.length && `Datos EXACTOS de lo que pregunta (cítalos tal cual, no cambies precios ni tiempos): ${exactos.join(' || ')}`,
+    preguntaTecnologia && 'No afirmes con qué tecnología o plataforma trabajamos: di que el asesor confirma la tecnología ideal',
   ].filter(Boolean);
   const texto = internos.length ? `[Información interna, no la menciones como tal: ${internos.join(' — ')}]\n${ultimo}` : ultimo;
-  // Sin herramientas: el modelo pequeño casi no las usa y alargan cada consulta.
-  // Las intenciones importantes se detectan con frases clave (más rápido y más fiable).
-  detectarIntenciones(ultimo, historial, ctx, est);
-  const { config } = cargarDatos();
-  // Preguntas sobre tecnologías: el modelo pequeño tiende a inventar ("sí, trabajamos con X").
-  // Si no están configuradas en config.tecnologias, se responde al instante con un texto fijo y honesto.
-  const tNorm = String(ultimo).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  if (!(config.tecnologias || '').trim() && /\b(react|node|python|php|laravel|wordpress|flutter|kotlin|swift|java|angular|vue|django|next|tecnologia|tecnologias|lenguaje|lenguajes|framework|stack)\b/.test(tNorm)) {
-    salida.push({ tipo: 'texto', texto: 'Trabajamos con tecnologías modernas y elegimos la más adecuada según lo que necesita tu proyecto. El asesor te confirma el detalle técnico. ¿Qué proyecto tienes en mente para recomendarte la mejor opción?' });
-    return est;
-  }
   const respuesta = await iaLocal.generar({ sistema: promptCompacto(), historial, texto, temperatura: 0.35 });
   const nombre = config.asistente || 'Ultron';
   let limpio = limpiarPensamiento(respuesta).replace(new RegExp(`^(${nombre}|Ultron|Asistente|Asesor)\\s*:\\s*`, 'i'), '').trim();
@@ -462,6 +469,20 @@ async function conversarLocal(base, ctx) {
 
 // Palabras con las que los clientes se refieren a cada servicio (por id del catálogo)
 const PALABRAS_SERVICIO = {
+  // Catálogo actual (20 servicios)
+  administrativo: /sistema administrativo|administrar (mi|la) empresa|\berp\b|gestion de (empleados|operaciones)|nomina/,
+  inventario: /inventario|existencias|stock|bodega/,
+  pos: /\bpos\b|punto de venta|facturaci|factura electronica|\bcaja\b/,
+  'chatbot-ia': /chat ?bots?|\bbots?\b|asistente virtual|asistente (con|de) (ia|inteligencia)/,
+  automatizacion: /automatiz|tareas repetitivas|procesos manuales/,
+  crm: /\bcrm\b|seguimiento (de|a) (mis )?clientes|gestion de clientes|embudo de ventas/,
+  reservas: /reserva|\bcitas?\b|agendar|agendamiento|agenda/,
+  bd: /bases? de datos|\bsql\b|mysql|postgres/,
+  educativa: /educativ|cursos? (en linea|online|virtual)|\bcursos\b|academia|colegio|estudiantes|e-?learning/,
+  clasificados: /clasificados|anuncios|marketplace|publicar (productos|anuncios)/,
+  notificaciones: /notificacion|alertas|recordatorios|correos? automatico/,
+  medida: /a la medida|a medida|software personalizado|sistema personalizado|algo unico/,
+  // Palabras compartidas con servicios anteriores (se usan si el servicio existe en el catálogo)
   web: /pagina(s)? web|sitio web|\bweb\b|pagina para mi/,
   tienda: /tienda|e-?commerce|vender (en linea|por internet|online)|carrito/,
   app: /\bapps?\b|aplicaci|movil|android|\bios\b|play ?store/,
@@ -469,68 +490,152 @@ const PALABRAS_SERVICIO = {
   bot: /chat ?bot|\bbots?\b|asistente virtual/,
   whatsapp: /whats ?app/,
   soporte: /mantenimiento|soporte|arreglar|se (me )?dano|actualizar mi/,
-  datos: /dato|dashboard|excel|reporte|analisis|power ?bi|kpi|estadistica/,
-  dashboard: /dashboard|tiempo real/,
+  datos: /analisis de datos|\banalizar (mis |los )?datos|dashboard|excel|power ?bi|\bkpis?\b|estadistica/,
+  dashboard: /dashboard|tiempo real|analitica|indicadores|estadisticas|\bkpis?\b|informes/,
   reportes: /reporte|extraer|extraccion/,
   landing: /landing|una sola pagina|pagina de (aterrizaje|venta)/,
   uxui: /diseno|\bux\b|\bui\b|figma|prototipo/,
   seo: /\bseo\b|google|posicionamiento|aparecer en/,
-  hosting: /dominio|hosting|correo(s)? (corporativo|empresarial|con mi)|\.com/,
+  hosting: /dominio|hosting|correo(s)? (corporativo|empresarial|con mi)/,
   migracion: /migra|moderniz|sistema (viejo|antiguo)/,
   consultoria: /consultor|capacitaci|asesoria|ensen/,
-  api: /\bapis?\b|backend|integrar/,
+  api: /\bapis?\b|backend|\brest\b|integrar (mis|los|dos) sistemas/,
   automatizaciones: /automatiz|tareas repetitivas/,
-  ia: /inteligencia artificial|\bia\b|\bai\b/,
-  pagos: /pagos? en linea|pasarela|recibir pagos|tarjeta/,
+  ia: /inteligencia artificial|\bia\b|\bai\b|chat ?gpt|modelo de lenguaje/,
+  pagos: /pagos? en linea|pasarela|recibir pagos|cobrar (en linea|con tarjeta|online)/,
   marketing: /marketing|publicidad|campana|correos? masivo/,
 };
 
+const GENERICAS = new Set(['integracion', 'desarrollo', 'correo', 'correos', 'whatsapp', 'tiempo', 'ventas', 'servicio', 'servicios', 'automaticos', 'sistema', 'sistemas', 'online', 'digital', 'pagina', 'paginas']);
+
+/** Servicios del catálogo que el cliente menciona con sus palabras (máx. 3). */
+function serviciosMencionados(texto) {
+  const { catalogo } = cargarDatos();
+  const t = ` ${normalizar(texto)} `;
+  return catalogo.filter((s) => {
+    const rx = PALABRAS_SERVICIO[s.id] || PALABRAS_SERVICIO[s.id.replace(/-\d+$/, '')];
+    if (rx) return rx.test(t);
+    // Servicios nuevos sin palabras clave: por su nombre, ignorando palabras demasiado comunes
+    return normalizar(s.nombre).split(/\W+/).some((w) => w.length > 5 && !GENERICAS.has(w) && new RegExp(`\\b${w}\\b`).test(t));
+  }).slice(0, 3);
+}
+
 // Datos exactos de los servicios que el cliente menciona (para que la IA no se equivoque de precio)
 function datosDeServicios(texto) {
-  const { config, catalogo } = cargarDatos();
-  const t = ` ${String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} `;
-  const hallados = catalogo.filter((s) => {
-    const rx = PALABRAS_SERVICIO[s.id] || PALABRAS_SERVICIO[s.id.replace(/-\d+$/, '')];
-    if (rx?.test(t)) return true;
-    return s.nombre.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\W+/).some((w) => w.length > 5 && t.includes(w));
-  }).slice(0, 3);
+  const { config } = cargarDatos();
+  const t = ` ${normalizar(texto)} `;
+  const hallados = serviciosMencionados(texto);
   // Lo que incluye solo se agrega si lo pregunta (menos texto = respuesta más rápida)
   const pideDetalle = /incluye|trae|tiene|detalle|que hacen|que ofrece|caracteristic/.test(t);
   return hallados.map((s) => `${s.nombre}: desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? `, tiempo ${s.tiempo}` : ''}${pideDetalle && s.incluye?.length ? `, incluye ${s.incluye.join('; ')}` : ''}`);
 }
 
 // Frases clave del cliente → avisos y registros (para el motor local)
+const normalizar = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 function detectarIntenciones(texto, historial, ctx, est) {
-  const t = ` ${String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} `;
-  const ultimoBot = String([...historial].reverse().find((h) => h.role === 'assistant')?.content || '').toLowerCase();
-  if (/(no me interesa|no me escrib|no me molest|deja de escribir|no quiero (nada|mas mensajes))/.test(t)) {
+  const t = ` ${normalizar(texto).replace(/[¡!¿?.,;:]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
+  const palabras = t.trim().split(' ').filter(Boolean).length;
+  const ultimoBot = normalizar([...historial].reverse().find((h) => h.role === 'assistant')?.content);
+  const afirma = /^ (si|sii+|claro|dale|ok|okay|listo|de una|perfecto|me parece|hagamoslo|armala|bueno|va|vale)\b/.test(t) && !/\b(no|pero|aun no|todavia no)\b/.test(t);
+
+  // Rechazo definitivo: solo si no está pidiendo otra cosa ("no me interesa la app, mejor una web" no cuenta)
+  const rechazo = /\b(no me interesa|no me escrib|no me molest|deja de escribir|dejen de escribir|no quiero (nada|mas mensajes)|no necesito nada)\b/.test(t);
+  if (rechazo && !/\b(mejor|pero|sino|quiero|necesito un|necesito una|prefiero)\b/.test(t.replace(/no necesito nada|no quiero (nada|mas mensajes)/, ''))) {
     est.efectos.noContactar = true;
     return;
   }
-  if (/(hablar|comunicar|atender).{0,20}(persona|humano|asesor|andres|alguien)|eres (un )?(bot|robot|maquina)/.test(t)) {
-    if (!/eres (un )?(bot|robot|maquina)/.test(t)) est.efectos.asesor = { motivo: 'pide_humano', resumen: `Pidió hablar con una persona: "${texto}"` };
+  if (/\b(hablar|comunicarme|comunicar|contactar)( me)? con (un |una |el |la |algun |alguna )?(persona|humano|asesor|asesora|andres|alguien|vendedor)|\b(atienda|atiendame|me atienda) (un |una |el )?(persona|humano|asesor)|\bpasame (con|a) (un |una |el )?(persona|humano|asesor)/.test(t)) {
+    est.efectos.asesor = { motivo: 'pide_humano', resumen: `Pidió hablar con una persona: "${texto}"` };
   }
-  if (/(quiero|deseo|vamos a|me gustaria|listo para) (contratar|comprar|empezar|arrancar|iniciar|hacerlo)|como (te )?pago|donde (te )?pago|me interesa contratar|cerremos|hagamoslo/.test(t)) {
-    est.efectos.asesor = { motivo: 'quiere_contratar', resumen: `Quiere contratar: "${texto}"` };
-  }
-  if (/(descuento|rebaja|mas barato)/.test(t) && !est.efectos.asesor) {
+  // "Quiero empezar un negocio de ropa" no es contratar: empezar/arrancar solo cuenta en mensajes cortos
+  const contratar = /\b(quiero|deseo|me gustaria|listo para|vamos a) (contratar|comprar|contratarlos|contratarte)\b|\bme interesa contratar\b|\b(como|donde|a donde) (te |les )?(pago|consigno|transfiero)\b|\bcerremos\b/.test(t)
+    || (palabras <= 6 && /\b(quiero|vamos a|listo para) (empezar|arrancar|iniciar|hacerlo)\b|^ (hagamoslo|arranquemos|empecemos)\b/.test(t));
+  if (contratar) est.efectos.asesor = { motivo: 'quiere_contratar', resumen: `Quiere contratar: "${texto}"` };
+  // Pedir un descuento pasa al asesor solo si hay descuento autorizado; "¿algo más barato?" lo resuelve la IA
+  if (/\b(descuento|rebaja|rebajita)\b/.test(t) && !est.efectos.asesor && Number(cargarDatos().config.ventas?.descuentoMaximo) > 0) {
     est.efectos.asesor = { motivo: 'descuento_solicitado', resumen: `Pregunta por descuento: "${texto}"` };
   }
-  const aceptaDemo = /demo/.test(ultimoBot) && /^ (si|sii|dale|ok|okay|listo|claro|de una|perfecto|bueno|me parece|hagamoslo|armala|quiero la demo)/.test(t);
-  if ((aceptaDemo || /quiero (la|una) demo|(armen|hagan|preparen)(me)? (la|una) demo/.test(t)) && ctx.demo?.estado !== 'solicitada') {
-    est.efectos.demo = { servicio: ctx.ficha?.servicio || 'por confirmar', negocio: ctx.ficha?.negocio || 'por confirmar', detalles: `Aceptó la demo con: "${texto}"` };
+  // Acepta la demo: se le piden los datos del negocio (no se avisa al equipo hasta tenerlos)
+  // Solo si Ultron le PREGUNTÓ por la demo (la ficha inicial la menciona, pero no la ofrece con pregunta)
+  const aceptaDemo = /demo[^.!\n]*\?/.test(ultimoBot) && afirma;
+  if ((aceptaDemo || /\bquiero (la|una) demo\b|\b(armen|hagan|preparen|arma|haz|prepara)(me)? (la|una) demo\b/.test(t)) && !['solicitada', 'entregada'].includes(ctx.demo?.estado) && !est.efectos.asesor) {
+    est.efectos.pedirDatosDemo = true;
   }
-  if (/(lo pienso|lo voy a pensar|despues te (escribo|aviso)|mas adelante|otro dia)/.test(t) && /(te escribo|escribirte|te contacto)/.test(ultimoBot)) {
+  // Permiso de seguimiento: lo pidió Ultron y el cliente aceptó, o el cliente dijo que lo piensa
+  const botPideSeguir = /(te escribo|escribirte|te contacto|contactarte|te aviso)/.test(ultimoBot);
+  if (botPideSeguir && (afirma || /\b(lo pienso|lo voy a pensar|despues (te|les) (escribo|aviso)|mas adelante|otro dia)\b/.test(t))) {
     est.efectos.seguimientoAutorizado = true;
   }
   const correo = String(texto).match(/[\w.+-]+@[\w-]+\.[\w.]+/);
   if (correo) est.efectos.ficha.email = correo[0];
 }
 
+const RX_TECNOLOGIA = /\b(react|node|python|php|laravel|wordpress|shopify|flutter|kotlin|swift|java|angular|vue|django|tecnologia|tecnologias|lenguaje|lenguajes|framework|stack)\b/;
+
+/**
+ * Respuestas sin IA (ahorran tokens y son exactas). Devuelve null si hace falta la IA.
+ * Cubre: primer mensaje (ficha), pedir asesor, contratar, rechazo, aceptar la demo, precio de un servicio,
+ * formas de pago, horario/contacto, catálogo, tecnologías y "gracias/ok".
+ */
+function respuestaRapida(texto, historial, ctx = {}) {
+  const { config } = cargarDatos();
+  const { fichaInicial, textoPagos, textoContacto } = require('./flujo');
+  const est = { salida: [], efectos: { asesor: null, noContactar: false, ficha: {}, demo: null, seguimientoAutorizado: false, pedirDatosDemo: false } };
+  const fija = (txt, extra = []) => { est.salida.push(...extra, { tipo: 'texto', texto: txt }); return est; };
+  const t = normalizar(texto).replace(/[¡!¿?.,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const palabras = t ? t.split(' ').length : 0;
+  const dias = config.ventas?.demoDias || 7;
+  const marca = config.marca || 'nuestro equipo';
+  const servicios = serviciosMencionados(texto);
+
+  // 1) Momentos clave: avisos al asesor, rechazo y demo
+  detectarIntenciones(texto, historial, ctx, est);
+  if (est.efectos.noContactar) return fija('Entendido, gracias por tu tiempo 🙌. No te volveremos a escribir. Si más adelante necesitas algo, aquí estaremos.');
+  const motivo = est.efectos.asesor?.motivo;
+  if (motivo === 'quiere_contratar') return fija(`¡Excelente decisión! 🎉 Ya le pasé tu solicitud a un asesor de ${marca} para formalizar el proyecto. Te escribe por este chat en horario de atención (${config.horario}).`);
+  if (motivo === 'pide_humano') return fija(`¡Claro! Ya le avisé a un asesor de ${marca} para que te atienda personalmente por este chat en horario de atención (${config.horario}).`);
+  if (motivo === 'descuento_solicitado') return fija(`Entiendo. Voy a consultar con el asesor si es posible un ajuste en el precio; él te confirma por este chat en horario de atención (${config.horario}).`);
+  if (est.efectos.pedirDatosDemo) {
+    return fija(`¡Listo! 🎁 Te preparamos la *demo gratis de ${dias} días*. Cuéntame en *un solo mensaje*:\n• Nombre de tu negocio y a qué se dedica\n• Qué quieres ver (página web, tienda, app, sistema, chatbot…)\n• Ideas o colores que te gusten`);
+  }
+  if (est.efectos.seguimientoAutorizado && palabras <= 8) return fija('¡Perfecto! Te escribo en unos días para ver cómo vas. Si antes te surge alguna duda, aquí estoy 🙌');
+
+  // 2) Primer mensaje de la conversación: la ficha con lo importante
+  const conIA = ctx.conIA !== false;
+  if (ctx.inicio) return fija(fichaInicial(servicios, { conIA }));
+
+  // 3) Preguntas frecuentes con respuesta exacta (solo mensajes cortos y directos)
+  if (palabras <= 12) {
+    if (/\b(formas? de pago|metodos? de pago|como (se )?paga|se puede pagar|financ|cuotas|a plazos|por etapas|pagar por partes)\b/.test(t)) return fija(textoPagos(config));
+    if (/\b(horario|a que hora|atienden|correo electronico|email|datos de contacto|numero de contacto|donde (estan|quedan))\b/.test(t) && !servicios.length) return fija(textoContacto(config));
+    if (/\b(catalogo|portafolio|brochure|todos (los|sus) servicios|que servicios|que hacen|que ofrecen)\b/.test(t)) {
+      return fija(`Aquí tienes nuestro catálogo 📂. ¿Cuál de estos servicios te sirve para tu negocio? Si me cuentas a qué te dedicas, te recomiendo el ideal.`, [{ tipo: 'catalogo' }]);
+    }
+    const preguntaPrecio = /\b(precio|precios|cuanto|valor|vale|cuesta|costo|cobran|tarifa|incluye)\b/.test(t);
+    if (servicios.length && (preguntaPrecio || palabras <= 6)) { // "y un sistema de inventario?"
+      return fija(fichaInicial(servicios.slice(0, 2), { conIA, saludo: false }));
+    }
+    if (!(config.tecnologias || '').trim() && RX_TECNOLOGIA.test(t) && !servicios.length) {
+      return fija('Trabajamos con tecnologías modernas y elegimos la más adecuada según lo que necesita tu proyecto. El asesor te confirma el detalle técnico. ¿Qué proyecto tienes en mente para recomendarte la mejor opción?');
+    }
+    if (/^(muchas )?gracias( .*)?$|^(ok|okay|vale|listo|perfecto|entendido|genial|excelente|super|bueno|de acuerdo)( gracias)?$/.test(t)) {
+      return fija('¡Con gusto! 🙌 Si te surge cualquier duda o quieres arrancar tu proyecto, escríbeme por aquí.');
+    }
+  }
+  return null;
+}
+
 async function conversar(historial, texto, ctx = {}) {
-  const proveedor = proveedorActivo();
-  if (!proveedor) throw new Error('El motor está en "menú clásico"');
   const base = normalizarHistorial([...historial, { role: 'user', content: texto || '(mensaje sin texto: imagen, audio o archivo)' }]);
+  // Primero, lo que se responde sin IA
+  const rapida = respuestaRapida(texto || '', base.slice(0, -1), ctx);
+  if (rapida) {
+    const respuestaTexto = rapida.salida.map((s) => (s.tipo === 'texto' ? s.texto : '[Se envió el catálogo: imagen y PDF]')).join('\n');
+    return { salida: rapida.salida, respuestaTexto, sinIA: true, ...rapida.efectos };
+  }
+  if (!disponible()) throw Object.assign(new Error('No hay IA configurada'), { codigo: 'SIN_IA' });
+  const proveedor = proveedorActivo();
   let salida, efectos;
 
   if (proveedor === 'local') {
@@ -599,4 +704,4 @@ async function probarClave(proveedor = 'claude') {
   return r.content.some((b) => b.type === 'text');
 }
 
-module.exports = { conversar, mensajeProactivo, calentarLocal, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };
+module.exports = { conversar, respuestaRapida, serviciosMencionados, mensajeProactivo, calentarLocal, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };

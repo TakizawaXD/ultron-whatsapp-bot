@@ -36,6 +36,17 @@ function html({ config, catalogo }) {
         <div class="extra"><span>${esc(s.nombre)}</span><b><small>desde</small> ${esc(num(s.precioDesde))} <small>${esc(moneda)}</small></b></div>`).join('')}
       </div>
     </section>` : '';
+  const formas = Array.isArray(config.formasPago) ? config.formasPago.filter((f) => f?.nombre) : [];
+  const dias = config.ventas?.demoDias || 7;
+  const pagos = `
+    <section class="extras">
+      <h3>Formas de pago</h3>
+      <div class="extras-grid">${formas.length
+        ? formas.map((f) => `<div class="pago"><b>${esc(f.nombre)}</b><span>${esc(f.detalle || '')}</span></div>`).join('')
+        : `<div class="pago"><span>${esc(config.ventas?.pagos || '')}</span></div>`}
+      </div>
+      <p class="demo">🎁 <b>¿Sin presupuesto todavía?</b> Te preparamos una demo gratis de ${dias} días de una versión sencilla de tu proyecto. Al terminar, si no contratas, el acceso se desactiva.</p>
+    </section>`;
   const c = config.contacto || {};
   const logo = logoDataUri();
   const limpiar = (u) => String(u).replace(/^https?:\/\//, '');
@@ -68,6 +79,10 @@ function html({ config, catalogo }) {
   .extra{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px dashed var(--borde);font-size:17px}
   .extra b{color:var(--azul);font-size:19px;white-space:nowrap;font-variant-numeric:tabular-nums}
   .extra small{font-size:12px;font-weight:500;color:var(--suave)}
+  .pago{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-bottom:1px dashed var(--borde);font-size:16px;color:var(--suave)}
+  .pago b{color:var(--azul);font-size:18px}
+  .demo{margin-top:18px;font-size:16.5px;line-height:1.5;color:#d5e2ee}
+  .demo b{color:var(--cian)}
   footer{margin-top:36px;display:flex;gap:14px 30px;flex-wrap:wrap;font-size:16px;color:var(--suave)}
   footer b{color:var(--texto);font-weight:600}
   .nota{margin-top:16px;font-size:13.5px;color:var(--tenue)}
@@ -82,6 +97,7 @@ function html({ config, catalogo }) {
 </header>
 <section class="grid">${tarjetas}</section>
 ${extras}
+${pagos}
 <footer>
   <span><b>Horario:</b> ${esc(config.horario)}</span>
   ${c.email ? `<span><b>Email:</b> ${esc(c.email)}</span>` : ''}

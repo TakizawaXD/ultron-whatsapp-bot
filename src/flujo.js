@@ -12,36 +12,128 @@ function cargarDatos() {
 const fmtNumero = new Intl.NumberFormat('es-CO', { useGrouping: 'always', maximumFractionDigits: 0 });
 const precio = (n, moneda) => `$${fmtNumero.format(n)} ${moneda}`;
 
-const OPCIONES_MENU = [
-  `Responde con el *número* de la opción:`,
-  `1️⃣ Ver catálogo de servicios`,
-  `2️⃣ Precios`,
-  `3️⃣ Pedir una cotización`,
-  `4️⃣ Horario y contacto`,
-  `5️⃣ Hablar con un asesor`,
-  `6️⃣ Demo gratis de 7 días`,
+const opcionesMenu = (config) => [
+  `¿Por dónde empezamos? Responde con el *número*:`,
   ``,
-  `💬 O escríbeme tu pregunta con tus palabras y te respondo.`,
-  `Escribe *menu* en cualquier momento para volver aquí.`,
+  `1️⃣ Catálogo completo (imagen y PDF)`,
+  `2️⃣ Servicios y precios`,
+  `3️⃣ Cotizar mi proyecto`,
+  `4️⃣ Formas de pago`,
+  `5️⃣ Hablar con un asesor`,
+  `6️⃣ ¿Sin presupuesto? Demo gratis de ${config.ventas?.demoDias || 7} días`,
+  `7️⃣ Horario y contacto`,
+  ``,
+  `💬 También puedes contarme tu idea con tus palabras y te asesoro.`,
+  `Escribe *menu* cuando quieras volver aquí.`,
 ];
+
+// ---------- Parte 1: ficha inicial ----------
+// El primer mensaje de cada conversación recibe SOLO lo importante, al instante y sin IA.
+// Si pregunta por un servicio, la ficha es de ese servicio; si solo saluda, un resumen corto.
+// Para saber más, el cliente conversa con Ultron (parte 2).
+
+// Grupos del resumen corto (por id del catálogo; el precio "desde" se calcula del catálogo)
+const GRUPOS_RESUMEN = [
+  ['Páginas web y tiendas virtuales', ['web', 'tienda']],
+  ['Sistemas para tu empresa (inventario, POS, CRM, citas…)', ['administrativo', 'inventario', 'pos', 'crm', 'reservas', 'medida', 'educativa', 'clasificados']],
+  ['Chatbots, automatización e inteligencia artificial', ['whatsapp', 'chatbot-ia', 'automatizacion', 'ia']],
+  ['Aplicaciones móviles', ['app']],
+  ['APIs, bases de datos, dashboards y notificaciones', ['api', 'bd', 'dashboard', 'notificaciones']],
+  ['Mantenimiento de software', ['soporte']],
+];
+
+const nombresPago = (config) => {
+  const formas = Array.isArray(config.formasPago) ? config.formasPago.filter((f) => f?.nombre).map((f) => f.nombre.toLowerCase()) : [];
+  if (!formas.length) return config.ventas?.pagos || '50% al iniciar y 50% al entregar';
+  return formas.length > 1 ? `${formas.slice(0, -1).join(', ')} o ${formas[formas.length - 1]}` : formas[0];
+};
+
+/**
+ * Ficha inicial (parte 1).
+ * @param {object[]} servicios  servicios del catálogo que el cliente mencionó (puede ir vacío)
+ * @param {{ conIA?: boolean }} o  si hay IA, invita a preguntar; si no, a usar el menú
+ */
+function fichaInicial(servicios = [], { conIA = true, saludo = true } = {}, datos = cargarDatos()) {
+  const { config, catalogo } = datos;
+  const nombre = config.asistente || 'Ultron';
+  const marca = config.marca || config.negocio;
+  const dias = config.ventas?.demoDias || 7;
+  const cierre = conIA
+    ? `👉 ¿Quieres saber más? Pregúntame lo que necesites (cómo funcionaría en tu negocio, tiempos, qué incluye…) y te asesoro aquí mismo. Si prefieres ver todas las opciones, escribe *menu*.`
+    : `👉 Escribe *menu* para ver todas las opciones o *5* para hablar con un asesor.`;
+  const pagosYDemo = [
+    `💳 Puedes pagar ${nombresPago(config)}.`,
+    `🎁 ¿Sin presupuesto todavía? Te armamos una *demo gratis de ${dias} días* antes de invertir.`,
+  ];
+
+  if (servicios.length) {
+    const fichas = servicios.slice(0, 2).map((s) => [
+      `🔹 *${s.nombre}*`,
+      s.descripcion || null,
+      `💵 Desde *${precio(s.precioDesde, config.moneda)}*${s.tiempo ? ` · ⏱️ ${s.tiempo}` : ''}`,
+      s.incluye?.length ? `✅ ${s.incluye.join(' · ')}` : null,
+    ].filter(Boolean).join('\n'));
+    return [
+      ...(saludo ? [`¡Hola! 👋 Soy *${nombre}*, de *${marca}*. Te cuento lo importante:`, ``] : []),
+      fichas.join('\n\n'),
+      ``,
+      ...pagosYDemo,
+      ``,
+      cierre,
+    ].join('\n');
+  }
+
+  const lineas = GRUPOS_RESUMEN.map(([titulo, ids]) => {
+    const precios = catalogo.filter((s) => ids.includes(s.id)).map((s) => s.precioDesde);
+    return precios.length ? `• ${titulo}: desde *${precio(Math.min(...precios), config.moneda)}*` : null;
+  }).filter(Boolean);
+  return [
+    `¡Hola! 👋 Soy *${nombre}*, asesor virtual de *${marca}*. Creamos software para que tu negocio venda más y trabaje menos.`,
+    ``,
+    `💼 *Lo que hacemos*`,
+    ...(lineas.length ? lineas : catalogo.slice(0, 6).map((s) => `• ${s.nombre}: desde *${precio(s.precioDesde, config.moneda)}*`)),
+    ``,
+    ...pagosYDemo,
+    ``,
+    cierre,
+  ].join('\n');
+}
+
+/** Formas de pago (config.formasPago); si no existen, usa el texto corto de ventas.pagos. */
+function textoPagos(config) {
+  const formas = Array.isArray(config.formasPago) ? config.formasPago.filter((f) => f?.nombre) : [];
+  const dias = config.ventas?.demoDias || 7;
+  return [
+    `💳 *Formas de pago*`,
+    ``,
+    ...(formas.length
+      ? formas.map((f, i) => `${i + 1}. *${f.nombre}*${f.detalle ? `\n    ${f.detalle}` : ''}`)
+      : [config.ventas?.pagos || '50% para iniciar y 50% al entregar.']),
+    ``,
+    `🎁 ¿Aún no tienes el presupuesto? Te preparamos una *demo gratis de ${dias} días* para que veas cómo quedaría tu proyecto (escribe *6*).`,
+    ``,
+    `Escribe *3* para cotizar o *menu* para volver.`,
+  ].join('\n');
+}
 
 /** Menú; con `bienvenida` antepone el saludo completo (solo en el primer mensaje). */
 function textoMenu(config, bienvenida = false) {
   const saludo = bienvenida && config.bienvenida ? [config.bienvenida, ``] : [`📋 *Menú ${config.marca || config.negocio}*`, ``];
-  return [...saludo, ...OPCIONES_MENU].join('\n');
+  return [...saludo, ...opcionesMenu(config)].join('\n');
 }
 
 function textoPrecios({ config, catalogo }) {
-  const linea = (s, i) => `${i + 1}. *${s.nombre}* — desde ${precio(s.precioDesde, config.moneda)}${s.tiempo ? ` (${s.tiempo})` : ''}`;
+  const linea = (s, i) => `*${i + 1}.* ${s.nombre} — desde *${precio(s.precioDesde, config.moneda)}*`;
   const principales = catalogo.map((s, i) => [s, i]).filter(([s]) => !s.adicional);
   const adicionales = catalogo.map((s, i) => [s, i]).filter(([s]) => s.adicional);
   return [
-    `💰 *Precios de referencia*`,
+    `💼 *Servicios y precios*`,
     ``,
     ...principales.map(([s, i]) => linea(s, i)),
     ...(adicionales.length ? [``, `➕ *Servicios adicionales*`, ...adicionales.map(([s, i]) => linea(s, i))] : []),
     ``,
-    `Escribe el número de un servicio para ver el detalle, o *menu* para volver.`,
+    `Precios de referencia: el valor final depende del alcance de tu proyecto.`,
+    `👉 Escribe el *número* de un servicio (1 al ${catalogo.length}) para ver qué incluye, o *menu* para volver.`,
   ].join('\n');
 }
 
@@ -54,7 +146,7 @@ function textoServicio(s, config) {
     s.tiempo ? `⏱️ Tiempo estimado: ${s.tiempo}` : null,
     ...(s.incluye?.length ? [`✅ Incluye:`, ...s.incluye.map((x) => `   • ${x}`)] : []),
     ``,
-    `¿Te interesa? Escribe *3* para pedir cotización o *menu* para volver.`,
+    `¿Te interesa? Escribe *3* para cotizar, *4* para ver las formas de pago o *menu* para volver.`,
   ].filter((l) => l !== null).join('\n');
 }
 
@@ -148,6 +240,8 @@ function responder(texto, sesion, datos = cargarDatos()) {
     case '3':
       return { respuestas: [{ tipo: 'texto', texto: TEXTO_COTIZACION }], estado: 'cotizacion' };
     case '4':
+      return { respuestas: [{ tipo: 'texto', texto: textoPagos(config) }], estado: 'menu' };
+    case '7':
       return { respuestas: [{ tipo: 'texto', texto: textoContacto(config) }], estado: 'menu' };
     case '5':
       return {
@@ -178,10 +272,10 @@ function responder(texto, sesion, datos = cargarDatos()) {
     }
     default:
       return {
-        respuestas: [{ tipo: 'texto', texto: `No entendí tu respuesta 🤔. Escribe un número del *1 al 6* o *menu* para ver las opciones.` }],
+        respuestas: [{ tipo: 'texto', texto: `No entendí tu respuesta 🤔. Escribe un número del *1 al 7* o *menu* para ver las opciones.` }],
         estado: estado || 'menu',
       };
   }
 }
 
-module.exports = { responder, cargarDatos, textoMenu, precio, RAIZ };
+module.exports = { responder, cargarDatos, textoMenu, textoPagos, textoContacto, fichaInicial, precio, RAIZ };

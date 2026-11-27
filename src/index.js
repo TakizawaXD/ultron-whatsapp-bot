@@ -198,23 +198,37 @@ async function atender(msg, { chatId, prueba }) {
     s.pausadoHasta = 0;
     const ctx = { chat, prueba, numero };
 
-    // ---- Ultron (IA) si está configurado; si no, el menú clásico ----
-    if (config.motor !== 'menu' && ultron.disponible()) {
-      const texto = (msg.body || '').trim();
-      if (prueba && /^\/?reiniciar$/i.test(texto)) {
-        s.ia = []; s.estado = null; E.guardar();
-        enviandoBot.set(chatId, Date.now() + 10_000);
-        await client.sendMessage(chatId, '🧪 Conversación con Ultron reiniciada. Escríbele como si fueras un cliente nuevo.');
-        return;
-      }
-      // Números, "menú" y saludos de inicio → menú instantáneo; texto libre → IA
-      if (esParaMenu(texto, s, vencida || pausaVencida)) {
-        return responderConMenu(chatId, texto, vencida || pausaVencida ? undefined : s, ctx);
-      }
-      return encolarIA(chatId, texto || `[${msg.type}]`, ctx);
+    // ---- Notas de voz, stickers y archivos sin texto ----
+    // La IA no puede escucharlos: antes recibía "[ptt]" y respondía cualquier cosa
+    const sinTexto = !(msg.body || '').trim();
+    if (sinTexto && ['ptt', 'audio'].includes(msg.type)) {
+      E.log(`🎤 ${s.nombre || numero} envió una nota de voz: se le pide escribir`);
+      s.ultimo = Date.now(); E.guardar();
+      await enviarSalida(chatId, [{ tipo: 'texto', texto: '🎤 Por ahora no puedo escuchar notas de voz. ¿Me lo escribes, por favor? Así te respondo enseguida.' }]);
+      return;
     }
-    const sesionPrevia = vencida || pausaVencida ? undefined : s;
-    await responderConMenu(chatId, msg.body, sesionPrevia, ctx);
+    if (sinTexto && ['sticker', 'reaction'].includes(msg.type)) { s.ultimo = Date.now(); E.guardar(); return; }
+
+    // ---- Dos partes ----
+    // Parte 1 (sin IA): el primer mensaje recibe una ficha con lo importante, y las preguntas
+    //   frecuentes (precio de un servicio, pagos, horario, catálogo, asesor, demo…) tienen respuesta fija.
+    // Parte 2 (IA): solo las preguntas libres que no tienen respuesta fija. Así se ahorran tokens.
+    // Sin IA configurada, lo que no tiene respuesta fija lo atiende el menú clásico.
+    const texto = (msg.body || '').trim() || (['image', 'video', 'document'].includes(msg.type) ? `(El cliente envió ${{ image: 'una imagen', video: 'un video', document: 'un documento' }[msg.type]} sin texto)` : '');
+    if (prueba && /^\/?reiniciar$/i.test(texto)) {
+      s.ia = []; s.estado = null; E.guardar();
+      enviandoBot.set(chatId, Date.now() + 10_000);
+      await client.sendMessage(chatId, '🧪 Conversación reiniciada. Escribe como si fueras un cliente nuevo.');
+      return;
+    }
+    const conversacionNueva = nuevo || !s.estado || vencida || pausaVencida;
+    const pideMenu = /^(\d{1,2}[.)]?|men[uú]|inicio|opciones|0)$/i.test(texto);
+    if (conversacionNueva && !pideMenu) return encolarIA(chatId, texto || `[${msg.type}]`, { ...ctx, inicio: true });
+    // Números (en el menú), "menú" y la cotización/demo en curso → menú instantáneo
+    if (esParaMenu(texto, s, conversacionNueva)) {
+      return responderConMenu(chatId, texto, conversacionNueva ? undefined : s, ctx);
+    }
+    return encolarIA(chatId, texto || `[${msg.type}]`, ctx);
   } catch (e) {
     E.log('❌ Error atendiendo mensaje:', e);
   }
@@ -302,7 +316,9 @@ async function pasarAAsesor(chatId, { motivo, resumen }, { prueba, numero }) {
 // ¿Este mensaje lo responde el menú (instantáneo) en vez de la IA?
 function esParaMenu(texto, s, conversacionNueva) {
   const t = String(texto || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  if (/^\d{1,2}[.)]?$/.test(t)) return true;                       // eligió una opción
+  // Un número es una opción del menú, salvo en plena conversación con Ultron:
+  // ahí "50" o "2" suele ser la respuesta a su pregunta (productos, presupuesto, sedes...)
+  if (/^\d{1,2}[.)]?$/.test(t)) return s?.estado !== 'ultron' || conversacionNueva;
   if (['menu', 'inicio', '0', 'opciones'].includes(t)) return true;
   if (['cotizacion', 'demo'].includes(s?.estado)) return true;      // está llenando la cotización o la demo
   const saludo = /^(hola+|holi|buenas?|buen(os)? dias?|buenas (tardes|noches)|hey|hi|ola|saludos|que tal)( [a-z]+)?[!.¡ ]*$/.test(t);
@@ -373,18 +389,22 @@ async function responderConUltron(chatId, texto, ctx) {
   const escribiendo = setInterval(() => chat.sendStateTyping().catch(() => {}), 15_000);
   let r;
   try {
-    r = await ultron.conversar(s.ia || [], texto, contextoCliente(s));
+    r = await ultron.conversar(s.ia || [], texto, { ...contextoCliente(s), inicio: !!ctx.inicio, conIA: ultron.disponible() });
   } catch (e) {
     clearInterval(escribiendo);
-    E.log(`⚠️  Ultron no pudo responder a ${s.nombre || numero} (${e.message}). Respondo con el menú.`);
-    return responderConMenu(chatId, texto, s.estado && s.estado !== 'ultron' ? s : undefined, ctx);
+    if (e.codigo !== 'SIN_IA') E.log(`⚠️  Ultron no pudo responder a ${s.nombre || numero} (${e.message}). Respondo con el menú.`);
+    // "No entendí… escribe 1 al 7" (no se repite la bienvenida completa)
+    return responderConMenu(chatId, texto, s.estado && s.estado !== 'ultron' ? s : { estado: 'menu' }, ctx);
   }
   clearInterval(escribiendo);
-  E.log(`🤖 Ultron → ${s.nombre || numero}: "${r.respuestaTexto.replace(/\s+/g, ' ').slice(0, 70)}"`);
+  E.log(`${r.sinIA ? '⚡ Sin IA' : '🤖 Ultron'} → ${s.nombre || numero}: "${r.respuestaTexto.replace(/\s+/g, ' ').slice(0, 70)}"`);
+  if (!prueba) E.contar(r.sinIA ? 'sinIA' : 'conIA'); // cuántas respuestas ahorraron IA
   await enviarSalida(chatId, await conVoz(chatId, r.salida, { prueba }));
 
   s.ia = [...(s.ia || []), { role: 'user', content: texto }, { role: 'assistant', content: r.respuestaTexto }].slice(-40);
-  s.estado = 'ultron';
+  // Aceptó la demo: el siguiente mensaje (datos del negocio) lo recoge el flujo de la demo y avisa al equipo.
+  // Sin IA, tras la ficha el chat queda en el menú para que los números funcionen.
+  s.estado = r.pedirDatosDemo ? 'demo' : ultron.disponible() ? 'ultron' : 'menu';
   s.ultimo = Date.now();
   aplicarEfectos(chatId, r, { prueba, numero });
   E.guardar();
@@ -620,7 +640,10 @@ iniciarPanel(config.puertoPanel || 3000, {
 // Un error de la librería (p. ej. al cerrar sesión) no debe tumbar el bot ni el panel
 process.on('unhandledRejection', (e) => E.log('⚠️  Error no controlado:', e?.message || String(e)));
 
-process.on('SIGINT', async () => { E.log('Cerrando...'); await client.destroy().catch(() => {}); process.exit(0); });
+// pm2 detiene con SIGINT; systemd o docker con SIGTERM. Se guarda todo antes de salir.
+async function cerrar() { E.log('Cerrando...'); E.guardarYa(); await client.destroy().catch(() => {}); process.exit(0); }
+process.on('SIGINT', cerrar);
+process.on('SIGTERM', cerrar);
 
 async function iniciarWhatsApp(intento = 1) {
   E.log(`🚀 Iniciando WhatsApp${intento > 1 ? ` (intento ${intento})` : ''}... la primera vez tarda un poco.`);

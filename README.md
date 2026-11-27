@@ -66,7 +66,10 @@ flowchart LR
 1. **whatsapp-web.js** abre WhatsApp Web en un Chrome sin ventana, vinculado a tu número.
 2. Cada mensaje entrante pasa por los filtros: chat privado, no es tu contacto (o el chat está en *responder siempre*) y el bot está activo.
 3. **Ultron** responde con IA. Usa herramientas para enviar el catálogo, guardar la ficha, pedir la demo, registrar el permiso de seguimiento o pasarte el cliente.
-4. Si la IA falla o no está configurada, el bot responde con el **menú clásico** y no se pierde ningún mensaje.
+4. **Dos partes, para ahorrar IA:**
+   - **Parte 1 (sin IA, instantánea):** el primer mensaje de cada conversación recibe una ficha corta con lo importante (servicios con precio *desde*, formas de pago y demo). Si pregunta por un servicio, recibe la ficha de ese servicio. Las preguntas frecuentes (precio de un servicio, formas de pago, horario, catálogo, "gracias", pedir un asesor, contratar, aceptar la demo, "no me interesa") también tienen respuesta fija.
+   - **Parte 2 (IA):** solo las preguntas libres que no tienen respuesta fija. En el registro se ven como `⚡ Sin IA` o `🤖 Ultron`.
+5. Si la IA falla o no está configurada, lo que no tenga respuesta fija lo atiende el **menú clásico** (7 opciones) y no se pierde ningún mensaje.
 5. Todo queda guardado en `data/` y se ve en vivo en el panel.
 
 ---
@@ -122,7 +125,7 @@ npm run catalogo  # genera output/catalogo.png y output/catalogo.pdf
    - en **Configuración → Inteligencia artificial de Ultron**, pega tu token de Hugging Face o tu API key de Anthropic (se verifica antes de guardarse);
    - prueba a Ultron en **Respuestas del bot → Probar a Ultron** (no envía nada por WhatsApp);
    - o escríbete a ti mismo en WhatsApp (modo prueba; `reiniciar` empieza de cero).
-5. Enciende el interruptor **Bot activo**.
+5. Enciende el interruptor **Bot activo**. En una instalación nueva el bot arranca **apagado**: no responde a clientes hasta que lo enciendas (el modo prueba funciona igual).
 
 El bot funciona mientras el PC esté encendido y la ventana del bot siga abierta. Para tenerlo siempre encendido, ver [servidor 24/7](#instalar-en-un-servidor-247-oracle-cloud-gratis).
 
@@ -156,7 +159,7 @@ Se elige en *Configuración → Cómo responde el bot*:
 | **IA local gratis** (predeterminado) | `qwen2.5-3b-instruct-q4_k_m.gguf` (Qwen 2.5 3B, de Hugging Face) | El archivo del modelo en `modelos/` (2,1 GB) | Corre en tu equipo con `node-llama-cpp`: sin cuentas, sin internet y sin límites. Con un i5 de 8.ª generación, la primera respuesta tras arrancar ya viene precalentada y las siguientes tardan entre 5 y 15 s. Usa un prompt de ventas más corto y con ejemplos. |
 | **Hugging Face** | `deepseek-ai/DeepSeek-V4.1-Flash-1017`; también Qwen 3.8, Llama 3.3 70B, Gemma 4, GPT-OSS 120B o GLM 5.3 | Token de Hugging Face con permiso *Inference Providers* **y saldo** | Usa `router.huggingface.co` (API compatible con chat completions). Hugging Face cobra este servicio: compra créditos o suscríbete a PRO. |
 | **Claude** | `claude-opus-5-5` | API key de Anthropic | Tiene activado el respaldo automático (`fallbacks: "default"`). |
-| **Menú clásico** | — | Nada | Menú de 5 opciones con textos fijos. |
+| **Menú clásico** | — | Nada | Ficha inicial, respuestas fijas y menú de 7 opciones. |
 
 Las claves se guardan en `data/secretos.json`, que no se sube a git, y el panel nunca las vuelve a mostrar. Sin clave para el motor elegido, el bot usa el menú clásico automáticamente.
 
@@ -255,15 +258,30 @@ Todo se edita desde el panel. Estas son las claves de `config.json`:
 
 `catalogo.json` contiene los servicios. Cada uno tiene: `nombre`, `precioDesde`, `tiempo`, `incluye[]`, `descripcion` y `adicional` (si va en la lista corta de servicios adicionales).
 
-| Servicio | Desde | Tiempo |
+| # | Servicio | Desde |
 |---|---|---|
-| Páginas web | $400.000 COP | 5 a 10 días |
-| Tiendas online | $800.000 COP | 10 a 20 días |
-| Aplicaciones móviles | $1.200.000 COP | 20 a 35 días |
-| Sistemas a medida | $700.000 COP | 15 a 30 días |
-| Bots y chatbots | $600.000 COP | 7 a 15 días |
-| Mantenimiento y soporte | $100.000 COP | Según el requerimiento |
-| *Adicionales:* Chatbot para WhatsApp · API y backend · Automatizaciones · Integración de IA | $800.000 · $500.000 · $600.000 · $700.000 COP | — |
+| 1 | Páginas web profesionales | $400.000 COP |
+| 2 | Tiendas virtuales | $800.000 COP |
+| 3 | Sistemas administrativos | $900.000 COP |
+| 4 | Sistemas de inventario | $700.000 COP |
+| 5 | Sistemas POS y facturación | $700.000 COP |
+| 6 | Chatbots para WhatsApp | $800.000 COP |
+| 7 | Chatbots inteligentes con IA | $600.000 COP |
+| 8 | Automatización empresarial | $600.000 COP |
+| 9 | Sistemas CRM | $900.000 COP |
+| 10 | Sistemas de reservas y citas | $700.000 COP |
+| 11 | Aplicaciones móviles | $1.200.000 COP |
+| 12 | Desarrollo de APIs y backend | $500.000 COP |
+| 13 | Bases de datos | $400.000 COP |
+| 14 | Dashboards y analítica | $500.000 COP |
+| 15 | Plataformas educativas | $900.000 COP |
+| 16 | Plataformas de anuncios y clasificados | $1.000.000 COP |
+| 17 | Inteligencia artificial personalizada | $700.000 COP |
+| 18 | Sistemas de notificaciones | $400.000 COP |
+| 19 | Mantenimiento y optimización de software | $100.000 COP |
+| 20 | Software a la medida | $700.000 COP |
+
+Formas de pago (`formasPago` en `config.json`): de contado, 50/50, por etapas o plan a la medida. Si el cliente no tiene presupuesto, se ofrece la demo gratis.
 
 El catálogo (imagen y PDF) se regenera solo cuando cambias `catalogo.json` o `config.json`. Usa el logo de `assets/logo.webp` y los colores de TAKER (`#00AEEF`, `#00E5FF` y `#05070B`).
 

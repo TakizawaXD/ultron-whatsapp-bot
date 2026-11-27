@@ -3,7 +3,7 @@
   "motor": "local",
   "modeloHF": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "ventas": {
-    "pagos": "50% de anticipo para iniciar el proyecto y 50% al entregarlo.",
+    "pagos": "De contado, 50% al iniciar y 50% al entregar, por etapas según el avance, o un plan a la medida de tu presupuesto.",
     "descuentoMaximo": 10,
     "demoDias": 7
   },
@@ -29,7 +29,7 @@
   "eslogan": "Transformamos ideas en soluciones digitales.",
   "moneda": "COP",
   "horario": "Lunes a viernes, 9:00 a. m. - 6:00 p. m.",
-  "bienvenida": "¡Hola! Soy *Andrés*, de *TAKER*.\n\nSomos un equipo enfocado en desarrollo de software, inteligencia artificial y automatización de procesos.\n\nPodemos ayudarte a crear páginas web, tiendas online, sistemas personalizados y chatbots.\n\nCuéntanos qué proyecto tienes en mente y con gusto te asesoraremos.\n\n🕘 Horario de atención: Lunes a viernes, de 9:00 a. m. a 6:00 p. m.",
+  "bienvenida": "¡Hola! 👋 Te saluda *Andrés*, asesor virtual de *TAKER*.\n\nCreamos páginas web, sistemas, apps, chatbots y soluciones con inteligencia artificial para que tu negocio *venda más y trabaje menos*.\n\nTenemos *20 servicios* para negocios de todos los tamaños, con varias formas de pago y una *demo gratis* para que veas tu proyecto antes de invertir.\n\n🕘 Atención personal: lunes a viernes, de 9:00 a. m. a 6:00 p. m.",
   "contacto": {
     "email": "andresmontalvo.dev@gmail.com",
     "web": "https://andresmontalvo.vercel.app",
@@ -42,5 +42,23 @@
   "probarConmigo": true,
   "numerosIgnorados": [],
   "diasInactividad": 14,
-  "tecnologias": ""
+  "tecnologias": "",
+  "formasPago": [
+    {
+      "nombre": "De contado",
+      "detalle": "Pagas el 100% al iniciar el proyecto."
+    },
+    {
+      "nombre": "50 / 50",
+      "detalle": "50% para arrancar y 50% cuando te entregamos."
+    },
+    {
+      "nombre": "Por etapas",
+      "detalle": "Pagas cada fase a medida que avanza el proyecto."
+    },
+    {
+      "nombre": "Plan a tu medida",
+      "detalle": "Revisamos tu presupuesto y armamos juntos una opción viable."
+    }
+  ]
 }

@@ -2,7 +2,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { RAIZ, responder, cargarDatos: cargarDatosPanel } = require('./flujo');
+const { RAIZ, responder, fichaInicial, cargarDatos: cargarDatosPanel } = require('./flujo');
 const ultron = require('./ultron');
 const E = require('./estado');
 const { generarCatalogo } = require('./generar-catalogo');
@@ -50,15 +50,21 @@ function vistaPrevia() {
   const pasos = [
     ['Primer mensaje de alguien nuevo', ['Hola']],
     ['Opción 1 · Catálogo', ['Hola', '1']],
-    ['Opción 2 · Precios', ['Hola', '2']],
+    ['Opción 2 · Servicios y precios', ['Hola', '2']],
     ['Detalle de un servicio', ['Hola', '2', '1']],
     ['Opción 3 · Cotización', ['Hola', '3']],
     ['Después de describir su proyecto', ['Hola', '3', 'Necesito una página web']],
-    ['Opción 4 · Horario y contacto', ['Hola', '4']],
+    ['Opción 4 · Formas de pago', ['Hola', '4']],
     ['Opción 5 · Hablar con un asesor', ['Hola', '5']],
+    ['Opción 6 · Demo gratis', ['Hola', '6']],
+    ['Opción 7 · Horario y contacto', ['Hola', '7']],
     ['Escribe algo que no es una opción', ['Hola', 'precio?']],
   ];
-  return pasos.map(([titulo, mensajes]) => {
+  const fichas = [
+    ['Primer mensaje (solo saluda) · sin IA', 'Hola', []],
+    ['Primer mensaje (pregunta por un servicio) · sin IA', 'Hola, cuánto vale una tienda virtual?', ultron.serviciosMencionados('tienda virtual')],
+  ].map(([titulo, cliente, servicios]) => ({ titulo, cliente, respuestas: [fichaInicial(servicios, { conIA: ultron.disponible() })], pausa: false }));
+  return [...fichas, ...pasos.slice(1).map(([titulo, mensajes]) => {
     let sesion, r;
     for (const m of mensajes) { r = responder(m, sesion); sesion = { estado: r.estado }; }
     return {
@@ -66,7 +72,7 @@ function vistaPrevia() {
       respuestas: r.respuestas.map((x) => (x.tipo === 'texto' ? x.texto : '📎 [Se envía el catálogo: imagen + PDF]')),
       pausa: !!r.pausar,
     };
-  });
+  })];
 }
 
 /** @param {{ enviar(chatId, texto), cerrarSesion() }} acciones  funciones que dependen del cliente de WhatsApp */
@@ -75,6 +81,10 @@ function iniciarPanel(puerto, acciones) {
     try {
       const url = new URL(req.url, 'http://localhost');
       const ruta = url.pathname;
+
+      // Protección contra DNS rebinding: solo se acepta el panel abierto como localhost / 127.0.0.1
+      const host = String(req.headers.host || '').replace(/:\d+$/, '').toLowerCase();
+      if (!['localhost', '127.0.0.1', '[::1]'].includes(host)) return json(res, 403, { error: 'Prohibido' });
 
       // Protección CSRF: las acciones exigen un encabezado que otras webs no pueden mandar.
       if (req.method !== 'GET' && req.headers['x-panel'] !== '1') return json(res, 403, { error: 'Prohibido' });
@@ -249,10 +259,17 @@ function iniciarPanel(puerto, acciones) {
         return json(res, 200, { ok: true });
       }
       if (ruta === '/api/ultron/probar' && req.method === 'POST') {
-        if (!ultron.disponible()) return json(res, 400, { error: 'Primero guarda la API key de Anthropic en Configuración' });
         const historial = Array.isArray(cuerpo.historial) ? cuerpo.historial.slice(-40) : [];
-        const r = await ultron.conversar(historial, String(cuerpo.texto || ''), cuerpo.contexto || {});
-        return json(res, 200, r);
+        // Simula también la parte 1 (ficha y respuestas fijas), que funciona aunque no haya IA
+        const contexto = { ...(cuerpo.contexto || {}), inicio: !historial.length, conIA: ultron.disponible() };
+        try {
+          return json(res, 200, await ultron.conversar(historial, String(cuerpo.texto || ''), contexto));
+        } catch (e) {
+          if (e.codigo !== 'SIN_IA') throw e;
+          const p = ultron.estadoClaves().proveedor;
+          const falta = { local: 'descarga el modelo de IA local en la carpeta modelos/', huggingface: 'guarda el token de Hugging Face en Configuración', claude: 'guarda la API key de Anthropic en Configuración' }[p];
+          return json(res, 400, { error: `Esa pregunta necesita la IA. ${falta ? `Primero ${falta}` : 'El motor está en "menú clásico": elige un motor de IA en Configuración'}.` });
+        }
       }
 
       if (ruta === '/api/catalogo/generar' && req.method === 'POST') {
