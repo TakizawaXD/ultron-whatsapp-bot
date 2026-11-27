@@ -7,335 +7,556 @@
 <link rel="icon" href="/logo.webp">
 <style>
   :root{
-    /* Identidad TAKER: azul #00AEEF, cian #00E5FF, fondo #05070B */
-    --bg:#05070B;--panel:#0B1220;--panel2:#111c2e;--borde:#1a2a42;--texto:#FFFFFF;--suave:#9fb3c8;--tenue:#5d7189;
-    --marca:#00AEEF;--cian:#00E5FF;
-    --verde:#22c55e;--verde-bg:rgba(34,197,94,.12);--ambar:#f59e0b;--ambar-bg:rgba(245,158,11,.12);
-    --rojo:#ef4444;--rojo-bg:rgba(239,68,68,.12);--azul:#00E5FF;--azul-bg:rgba(0,229,255,.10);
-    --r:12px;
+    /* Identidad TAKER: azul #00AEEF y cian #00E5FF sobre fondo casi negro */
+    --bg:#070a10;--lado:#0a0f17;--sup:#0e141f;--sup2:#131b28;--sup3:#182233;
+    --borde:#1d2838;--borde2:#273449;
+    --texto:#e8eef6;--suave:#93a3b8;--tenue:#5f6f85;
+    --marca:#00aeef;--marca2:#33c1f5;--marca-bg:rgba(0,174,239,.12);--marca-borde:rgba(0,174,239,.35);--cian:#22d3ee;
+    --verde:#22c55e;--verde-bg:rgba(34,197,94,.12);
+    --ambar:#f5a524;--ambar-bg:rgba(245,165,36,.12);
+    --rojo:#f2555a;--rojo-bg:rgba(242,85,90,.12);
+    --violeta:#a78bfa;--violeta-bg:rgba(167,139,250,.12);
+    --r:14px;--r2:10px;--sombra:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px -18px rgba(0,0,0,.8);
+    --lado-w:236px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font:14px/1.5 'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--texto);min-height:100vh}
+  html,body{height:100%}
+  body{font:14px/1.5 Inter,'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--texto);-webkit-font-smoothing:antialiased}
   button,input,textarea,select{font:inherit;color:inherit}
-  button{cursor:pointer;border:1px solid var(--borde);background:var(--panel2);border-radius:8px;padding:7px 14px;transition:background .15s,border-color .15s}
-  button:hover{border-color:var(--suave)}
-  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
-  button.prim{background:var(--marca);border-color:var(--marca);color:#00131c;font-weight:600}
-  button.prim:hover{filter:brightness(1.08)}
-  button.peligro{color:var(--rojo);border-color:rgba(239,68,68,.4)}
   a{color:inherit;text-decoration:none}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  select.campo{width:100%;background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:8px 10px}
-  input,textarea{background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:8px 10px;width:100%}
+  ::selection{background:rgba(0,174,239,.35)}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-thumb{background:var(--borde2);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+  *::-webkit-scrollbar-track{background:transparent}
+
+  /* ---------- Iconos ---------- */
+  .ic{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+  .ic.sm{width:14px;height:14px}.ic.lg{width:20px;height:20px}.ic.xl{width:28px;height:28px}
+
+  /* ---------- Controles ---------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;border:1px solid var(--borde2);background:var(--sup2);border-radius:var(--r2);padding:7px 13px;font-size:13px;font-weight:500;color:var(--texto);transition:background .15s,border-color .15s,color .15s;white-space:nowrap}
+  .btn:hover{background:var(--sup3);border-color:#34445c}
+  .btn.prim{background:var(--marca);border-color:var(--marca);color:#00121b;font-weight:600}
+  .btn.prim:hover{background:var(--marca2);border-color:var(--marca2)}
+  .btn.peligro{color:var(--rojo);border-color:rgba(242,85,90,.35);background:transparent}
+  .btn.peligro:hover{background:var(--rojo-bg)}
+  .btn.fant{background:transparent;border-color:transparent;color:var(--suave)}
+  .btn.fant:hover{background:var(--sup2);color:var(--texto)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .btn.ico{padding:7px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  :focus-visible{outline:2px solid var(--marca);outline-offset:2px;border-radius:6px}
+  input,textarea,select.campo{background:var(--bg);border:1px solid var(--borde2);border-radius:var(--r2);padding:9px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
+  input:focus,textarea:focus,select.campo:focus{outline:none;border-color:var(--marca);box-shadow:0 0 0 3px var(--marca-bg)}
+  input::placeholder,textarea::placeholder{color:var(--tenue)}
   textarea{resize:vertical}
-  label{display:block;font-size:12px;color:var(--suave);margin-bottom:4px}
+  label{display:block;font-size:12px;font-weight:500;color:var(--suave);margin-bottom:6px}
+  .ayuda{font-size:12px;color:var(--tenue);margin-top:5px}
 
-  header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--borde);background:var(--panel);position:sticky;top:0;z-index:5}
-  header h1{font-size:17px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:12px}
-  header h1 small{font-weight:400;color:var(--suave);letter-spacing:0;font-size:13px}
-  .logo{width:40px;height:40px;border-radius:10px;background:url(/logo.webp) 52% 22%/250% no-repeat #05070B;box-shadow:0 0 0 1px rgba(0,229,255,.3),0 0 18px rgba(0,174,239,.35)}
-  header{box-shadow:0 1px 0 rgba(0,229,255,.08)}
-  .cuenta{color:var(--suave);font-size:13px}
-  .esp{flex:1}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
-  .pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
-  .p-verde{color:var(--verde);background:var(--verde-bg)} .p-ambar{color:var(--ambar);background:var(--ambar-bg)}
-  .p-rojo{color:var(--rojo);background:var(--rojo-bg)} .p-azul{color:var(--azul);background:var(--azul-bg)}
-  .p-gris{color:var(--suave);background:rgba(148,163,184,.12)}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+  .pill .punto{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .p-verde{color:var(--verde);background:var(--verde-bg);border-color:rgba(34,197,94,.25)}
+  .p-ambar{color:var(--ambar);background:var(--ambar-bg);border-color:rgba(245,165,36,.25)}
+  .p-rojo{color:var(--rojo);background:var(--rojo-bg);border-color:rgba(242,85,90,.25)}
+  .p-azul{color:var(--marca2);background:var(--marca-bg);border-color:var(--marca-borde)}
+  .p-violeta{color:var(--violeta);background:var(--violeta-bg);border-color:rgba(167,139,250,.25)}
+  .p-gris{color:var(--suave);background:rgba(148,163,184,.08);border-color:var(--borde2)}
 
-  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:600}
-  .switch input{display:none}
-  .switch .riel{width:46px;height:26px;border-radius:999px;background:var(--borde);position:relative;transition:background .2s}
-  .switch .riel::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+  .switch{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none}
+  .switch input{position:absolute;opacity:0;pointer-events:none}
+  .switch .riel{width:42px;height:24px;border-radius:999px;background:var(--borde2);position:relative;transition:background .2s;flex:none}
+  .switch .riel::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
   .switch input:checked + .riel{background:var(--verde)}
-  .switch input:checked + .riel::after{transform:translateX(20px)}
+  .switch input:checked + .riel::after{transform:translateX(18px)}
+  .switch input:focus-visible + .riel{outline:2px solid var(--marca);outline-offset:2px}
 
-  main{padding:20px 24px;max-width:1400px;margin:0 auto}
-  .aviso{display:none;background:var(--ambar-bg);border:1px solid rgba(245,158,11,.35);color:#fde68a;border-radius:var(--r);padding:12px 16px;margin-bottom:16px}
-  .qr{display:none;background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:24px;margin-bottom:20px;gap:24px;align-items:center}
-  .qr img{background:#fff;border-radius:8px;padding:8px;width:240px;height:240px}
-  .qr ol{margin:10px 0 0 18px;color:var(--suave)}
+  /* ---------- Estructura ---------- */
+  .app{display:grid;grid-template-columns:var(--lado-w) 1fr;height:100vh}
+  aside{background:var(--lado);border-right:1px solid var(--borde);display:flex;flex-direction:column;min-height:0}
+  .marca{display:flex;align-items:center;gap:12px;padding:20px 18px 18px}
+  .logo{width:40px;height:40px;border-radius:11px;background:url(/logo.webp) 52% 22%/250% no-repeat #05070b;box-shadow:0 0 0 1px rgba(0,229,255,.28),0 0 22px rgba(0,174,239,.28);flex:none}
+  .marca b{display:block;font-size:15px;letter-spacing:.14em}
+  .marca span{display:block;font-size:11.5px;color:var(--tenue)}
+  nav.tabs{display:flex;flex-direction:column;gap:2px;padding:6px 10px;flex:1;overflow-y:auto}
+  .nav-tit{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);padding:12px 10px 6px}
+  nav.tabs button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;border-radius:var(--r2);padding:9px 11px;color:var(--suave);font-size:13.5px;font-weight:500;cursor:pointer;transition:background .15s,color .15s}
+  nav.tabs button:hover{background:var(--sup);color:var(--texto)}
+  nav.tabs button.on{background:var(--marca-bg);color:var(--texto);box-shadow:inset 2px 0 var(--marca)}
+  nav.tabs button.on .ic{color:var(--marca)}
+  nav.tabs .cont{margin-left:auto;font-size:11px;font-weight:700;background:var(--ambar);color:#1a1200;border-radius:999px;padding:0 7px;min-width:20px;text-align:center;display:none}
+  .lado-pie{padding:14px;border-top:1px solid var(--borde);display:grid;gap:12px}
+  .tarjeta-bot{background:var(--sup);border:1px solid var(--borde);border-radius:var(--r);padding:12px 14px}
+  .tarjeta-bot .switch b{font-size:13.5px}
+  .tarjeta-bot p{font-size:11.5px;color:var(--tenue);margin-top:4px}
+  .cuenta-lado{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--suave);min-width:0}
+  .cuenta-lado .txt{min-width:0}
+  .cuenta-lado .txt b{display:block;color:var(--texto);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-  .stat{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px 18px}
-  .stat .n{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
-  .stat .l{color:var(--suave);font-size:12px}
-  .barras{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:8px}
-  .barras i{flex:1;background:var(--marca);opacity:.55;border-radius:2px 2px 0 0;min-height:2px}
+  .area{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .barra-sup{display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--borde);background:rgba(7,10,16,.85);backdrop-filter:blur(8px)}
+  .barra-sup h1{font-size:18px;font-weight:650;letter-spacing:-.01em}
+  .barra-sup p{font-size:12.5px;color:var(--tenue)}
+  .esp{flex:1}
+  .contenido{flex:1;overflow-y:auto;padding:22px 28px 28px;min-height:0}
+  .apilar{display:grid;gap:18px}
+
+  .aviso{display:none;align-items:center;gap:12px;background:var(--ambar-bg);border:1px solid rgba(245,165,36,.3);color:#fcd9a0;border-radius:var(--r);padding:11px 16px}
+  .aviso .ic{color:var(--ambar)}
+  .aviso .esp{flex:1}
+  .qr{display:none;background:linear-gradient(135deg,rgba(0,174,239,.08),transparent 60%),var(--sup);border:1px solid var(--marca-borde);border-radius:var(--r);padding:24px;gap:28px;align-items:center}
+  .qr img{background:#fff;border-radius:12px;padding:10px;width:220px;height:220px}
+  .qr h2{font-size:18px;margin-bottom:4px}
+  .pasos{list-style:none;display:grid;gap:10px;margin-top:14px;counter-reset:p}
+  .pasos li{display:flex;gap:12px;align-items:center;color:var(--suave);counter-increment:p}
+  .pasos li::before{content:counter(p);width:24px;height:24px;border-radius:50%;background:var(--marca-bg);color:var(--marca2);font-size:12px;font-weight:700;display:grid;place-items:center;flex:none}
+  .pasos b{color:var(--texto);font-weight:600}
+
+  .tarjeta{background:var(--sup);border:1px solid var(--borde);border-radius:var(--r);box-shadow:var(--sombra)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .stat{padding:16px 18px;display:grid;grid-template-columns:1fr auto;align-items:start;gap:4px 12px}
+  .stat .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.15}
+  .stat .l{color:var(--suave);font-size:12.5px;grid-column:1}
+  .stat .ico-st{grid-row:1/3;grid-column:2;width:38px;height:38px;border-radius:11px;display:grid;place-items:center}
+  .ico-st.az{background:var(--marca-bg);color:var(--marca2)} .ico-st.ve{background:var(--verde-bg);color:var(--verde)}
+  .ico-st.am{background:var(--ambar-bg);color:var(--ambar)} .ico-st.vi{background:var(--violeta-bg);color:var(--violeta)}
+  .barras{grid-column:1/-1;display:flex;align-items:flex-end;gap:3px;height:26px;margin-top:8px}
+  .barras i{flex:1;background:var(--marca);opacity:.35;border-radius:3px 3px 0 0;min-height:2px}
   .barras i:last-child{opacity:1}
 
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--borde);margin-bottom:16px}
-  .tabs button{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;color:var(--suave)}
-  .tabs button.on{color:var(--texto);border-bottom-color:var(--marca)}
   .tab{display:none}.tab.on{display:block}
+  .intro{color:var(--suave);font-size:13px;margin-bottom:16px;max-width:900px}
 
-  .chats{display:grid;grid-template-columns:340px 1fr;gap:16px;height:calc(100vh - 330px);min-height:440px}
-  .lista,.detalle{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
-  .lista .buscar{padding:10px;border-bottom:1px solid var(--borde);display:grid;gap:8px}
-  .seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--borde);border-radius:9px;padding:3px}
-  .seg button{flex:1;font-size:12.5px;padding:5px 8px;border:none;background:none;color:var(--suave);border-radius:6px}
-  .seg button.on{background:var(--marca);color:#00131c;font-weight:600}
-  .tags{display:flex;gap:6px;align-items:center;justify-content:flex-end;font-size:12px;color:var(--tenue)}
-  .nl{background:var(--marca);color:#00131c;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
+  /* ---------- Conversaciones ---------- */
+  .chats{display:grid;grid-template-columns:350px 1fr;gap:16px;height:calc(100vh - 262px);min-height:480px}
+  .lista,.detalle{background:var(--sup);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .lista .buscar{padding:12px;border-bottom:1px solid var(--borde);display:grid;gap:10px}
+  .seg{display:flex;gap:3px;background:var(--bg);border:1px solid var(--borde);border-radius:11px;padding:3px}
+  .seg button{flex:1;font-size:12.5px;font-weight:500;padding:6px 8px;border:none;background:none;color:var(--suave);border-radius:8px;cursor:pointer}
+  .seg button.on{background:var(--sup3);color:var(--texto);box-shadow:0 0 0 1px var(--borde2)}
+  .campo-buscar{position:relative}
+  .campo-buscar .ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tenue)}
+  .campo-buscar input{padding-left:34px}
+  .lista ul{list-style:none;overflow-y:auto;flex:1}
+  .lista li{padding:11px 14px;border-bottom:1px solid rgba(29,40,56,.6);cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:0 11px;align-items:center;transition:background .12s}
+  .lista li:hover{background:var(--sup2)}
+  .lista li.sel{background:var(--marca-bg);box-shadow:inset 2px 0 var(--marca)}
+  .lista .cuerpo{min-width:0}
+  .lista .nom{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .lista .ult{color:var(--suave);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lista .lado-der{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+  .lista .hora{color:var(--tenue);font-size:11.5px;white-space:nowrap}
+  .lista li.no-leido .hora{color:var(--marca2);font-weight:600}
+  .tags{display:flex;gap:5px;align-items:center;color:var(--tenue)}
+  .tags .ic{width:14px;height:14px}
+  .t-bot{color:var(--marca2)} .t-si{color:var(--verde)} .t-no{color:var(--rojo)}
+  .nl{background:var(--marca);color:#00121b;border-radius:999px;font-size:11px;font-weight:700;padding:0 6px;min-width:19px;height:19px;display:inline-grid;place-items:center}
+  .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:13.5px;font-weight:700;flex:none;letter-spacing:.02em}
+  .av.lg{width:44px;height:44px;font-size:15px}
+  .av0{background:rgba(0,174,239,.16);color:#5fd0f8}.av1{background:rgba(167,139,250,.16);color:#c4b5fd}
+  .av2{background:rgba(34,197,94,.15);color:#6ee7a0}.av3{background:rgba(245,165,36,.15);color:#fcc46b}
+  .av4{background:rgba(242,85,90,.15);color:#fb9a9d}.av5{background:rgba(34,211,238,.15);color:#67e8f9}
+  .av.grupo{background:var(--sup3);color:var(--suave)}
+
+  .det-cab{padding:13px 18px;border-bottom:1px solid var(--borde);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .det-cab .nom{font-weight:650;font-size:15.5px}
+  .det-cab .sub{font-size:12px;color:var(--tenue)}
+  .det-cab .acc{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .modo{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--suave);margin:0}
+  .modo select{background:var(--bg);border:1px solid var(--borde2);border-radius:var(--r2);padding:6px 8px;color:var(--texto);font-size:12.5px}
+  .modo select.siempre{border-color:rgba(34,197,94,.5)} .modo select.nunca{border-color:rgba(242,85,90,.5)}
+  .ficha{border-bottom:1px solid var(--borde);padding:10px 18px;font-size:12.5px;display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;background:var(--sup2)}
+  .ficha .tit{display:flex;align-items:center;gap:6px;color:var(--marca2);font-weight:600}
+  .ficha b{color:var(--tenue);font-weight:500}
+  .msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:8px;background:radial-gradient(800px 300px at 100% 0,rgba(0,174,239,.04),transparent),var(--bg)}
+  .b{max-width:70%;padding:9px 13px 7px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;font-size:13.5px;line-height:1.5}
+  .b small{display:block;font-size:10.5px;color:var(--tenue);margin-top:4px;text-align:right}
+  .b.cliente{align-self:flex-start;background:var(--sup2);border:1px solid var(--borde);border-top-left-radius:4px}
+  .b.bot{align-self:flex-end;background:rgba(0,174,239,.12);border:1px solid var(--marca-borde);border-top-right-radius:4px}
+  .b.tu{align-self:flex-end;background:#1a2638;border:1px solid var(--borde2);border-top-right-radius:4px}
+  .b .quien{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--suave);margin-bottom:3px}
+  .b.bot .quien{color:var(--marca2)}
   .b .autor{font-size:11.5px;font-weight:600;color:var(--cian);margin-bottom:2px}
-  .modo{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--suave);margin:0}
-  .modo select{background:var(--bg);border:1px solid var(--borde);border-radius:8px;padding:6px 8px;color:var(--texto)}
-  .modo select.siempre{border-color:var(--marca)} .modo select.nunca{border-color:var(--rojo)}
-  .sim{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;height:520px;max-width:900px;margin-bottom:24px}
-  .sim-cab{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--borde);flex-wrap:wrap}
-  .sim-cab .cuenta{flex:1;font-size:12.5px}
-  .tabla-env{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);overflow:auto}
+  .nota-sis{align-self:center;font-size:12px;color:var(--suave);background:var(--sup);border:1px solid var(--borde);border-radius:999px;padding:4px 12px;display:flex;gap:6px;align-items:center}
+  .enviar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--borde);background:var(--sup)}
+  .enviar textarea{height:42px;min-height:42px;max-height:160px}
+  .vacio{color:var(--tenue);text-align:center;padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;margin:auto}
+  .vacio .circ{width:56px;height:56px;border-radius:16px;background:var(--sup2);border:1px solid var(--borde);display:grid;place-items:center;color:var(--suave)}
+  .vacio b{color:var(--texto);font-weight:600;font-size:14px}
+
+  /* ---------- Tablas ---------- */
+  .tabla-env{overflow:auto}
   .tabla{width:100%;border-collapse:collapse;font-size:13px}
-  .tabla th{text-align:left;color:var(--suave);font-weight:600;font-size:12px;padding:10px 12px;border-bottom:1px solid var(--borde);white-space:nowrap}
-  .tabla td{padding:10px 12px;border-bottom:1px solid var(--borde);vertical-align:top}
+  .tabla th{text-align:left;color:var(--tenue);font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px 16px;border-bottom:1px solid var(--borde);white-space:nowrap;background:var(--sup2)}
+  .tabla td{padding:12px 16px;border-bottom:1px solid var(--borde);vertical-align:top}
   .tabla tr:last-child td{border-bottom:none}
+  .tabla tbody tr:hover td{background:rgba(255,255,255,.015)}
   .tabla .acc{display:flex;gap:6px;flex-wrap:wrap}
-  .tabla button{padding:4px 10px;font-size:12px}
-  .ficha{border-bottom:1px solid var(--borde);padding:10px 18px;font-size:12.5px;display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;background:var(--panel2)}
-  .ficha b{color:var(--suave);font-weight:600}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:16px}
-  .kpi{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:14px 16px}
-  .kpi .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
-  .kpi .l{font-size:12px;color:var(--suave)}
+  .cliente-cel{display:flex;gap:11px;align-items:center}
+  .tenue{color:var(--tenue);font-size:12px}
+  .suave{color:var(--suave)}
+
+  /* ---------- Análisis ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{padding:15px 16px}
+  .kpi .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .kpi .l{font-size:12px;color:var(--suave);display:flex;align-items:center;gap:6px}
+  .kpi .l .ic{color:var(--tenue)}
   .graficos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .grafico{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px 18px;min-width:0}
+  .grafico{padding:18px 20px;min-width:0}
   .grafico.ancho{grid-column:1/-1}
   .grafico h3{font-size:14px;font-weight:600}
-  .grafico .cuenta{font-size:12px;margin-bottom:10px}
-  .hbar{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
+  .grafico .tenue{margin-bottom:14px}
+  .hbar{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:10px;align-items:center;margin:7px 0;font-size:12.5px}
   .hbar .et{color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hbar .pista{position:relative;height:20px}
-  .hbar .barra{height:100%;background:var(--marca);border-radius:0 4px 4px 0;min-width:2px}
-  .hbar .val{position:absolute;top:1px;font-variant-numeric:tabular-nums;color:var(--texto);font-size:12px;padding-left:6px}
+  .hbar .pista{position:relative;height:22px;background:var(--sup2);border-radius:6px}
+  .hbar .barra{height:100%;background:linear-gradient(90deg,var(--marca),var(--cian));border-radius:6px;min-width:3px}
+  .hbar .val{position:absolute;top:2px;font-variant-numeric:tabular-nums;color:var(--texto);font-size:12px;padding-left:8px}
   .vbar svg{width:100%;height:180px;display:block}
-  .vbar rect.b{fill:var(--marca)} .vbar rect.b:hover{fill:var(--cian)}
+  .vbar path.b{fill:var(--marca)} .vbar g:hover path.b{fill:var(--cian)}
   .vbar text{fill:var(--tenue);font-size:10px}
   .vbar line{stroke:var(--borde)}
-  @media (max-width:900px){.graficos{grid-template-columns:1fr}}
-  h3.sub{font-size:14px;margin:6px 0 6px;color:var(--suave);font-weight:600}
-  .seccion{grid-column:1/-1;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--cian);border-top:1px solid var(--borde);padding-top:14px;margin-top:4px}
-  .seccion:first-child{border-top:none;padding-top:0;margin-top:0}
-  .previas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;max-width:1200px}
-  .previa{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px}
-  .previa h3{font-size:13px;color:var(--cian);font-weight:600}
-  .previa .cli{align-self:flex-start;background:var(--panel2);padding:6px 10px;border-radius:10px;font-size:13px}
+
+  /* ---------- Respuestas del bot ---------- */
+  .sim{display:flex;flex-direction:column;height:540px;max-width:920px;overflow:hidden;margin-bottom:26px}
+  .sim-cab{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--borde);flex-wrap:wrap}
+  .sim-cab .tit{display:flex;align-items:center;gap:10px}
+  .sim-cab .tit .ico-st{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+  .sim-cab .tenue{flex:1;min-width:220px}
+  .efecto{align-self:flex-end;max-width:70%;font-size:12px;color:var(--suave);display:flex;gap:7px;align-items:flex-start;background:var(--sup);border:1px dashed var(--borde2);border-radius:10px;padding:6px 10px}
+  .efecto .ic{margin-top:2px;color:var(--ambar)}
+  h3.sub{font-size:14px;margin:0 0 4px;font-weight:600}
+  .previas{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .previa{padding:16px;display:flex;flex-direction:column;gap:9px}
+  .previa h3{font-size:12px;color:var(--marca2);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .previa .cli{align-self:flex-start;background:var(--sup2);border:1px solid var(--borde);padding:6px 11px;border-radius:12px;font-size:13px}
   .previa .b{max-width:100%}
-  .lista ul{list-style:none;overflow-y:auto;flex:1}
-  .lista li{padding:12px 14px;border-bottom:1px solid var(--borde);cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 8px}
-  .lista li:hover{background:var(--panel2)} .lista li.sel{background:var(--panel2);box-shadow:inset 3px 0 var(--marca)}
-  .lista .nom{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lista .hora{color:var(--tenue);font-size:12px}
-  .lista .ult{color:var(--suave);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .vacio{color:var(--tenue);text-align:center;padding:40px 20px}
 
-  .det-cab{padding:14px 18px;border-bottom:1px solid var(--borde);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .det-cab .nom{font-weight:600;font-size:16px}
-  .det-cab .acc{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-  .msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
-  .b{max-width:72%;padding:8px 12px;border-radius:10px;white-space:pre-wrap;word-wrap:break-word;font-size:13.5px}
-  .b small{display:block;font-size:11px;color:var(--tenue);margin-top:3px}
-  .b.cliente{align-self:flex-start;background:var(--panel2);border-top-left-radius:2px}
-  .b.bot{align-self:flex-end;background:#08324a;border-top-right-radius:2px}
-  .b.tu{align-self:flex-end;background:#1b2f4d;border-top-right-radius:2px}
-  .b .quien{font-size:11px;font-weight:600;color:var(--suave);margin-bottom:2px}
-  .enviar{display:flex;gap:8px;padding:12px;border-top:1px solid var(--borde)}
-  .enviar textarea{height:42px;min-height:42px}
-
-  .servicios{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
-  .serv{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px;display:grid;gap:10px}
+  /* ---------- Catálogo ---------- */
+  .barra-acc{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .servicios{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .serv{padding:16px;display:grid;gap:12px}
+  .serv-cab{display:flex;align-items:center;gap:10px}
+  .serv-cab .num{width:28px;height:28px;border-radius:8px;background:var(--marca-bg);color:var(--marca2);font-weight:700;font-size:12.5px;display:grid;place-items:center;flex:none}
+  .serv-cab input{font-weight:600}
   .serv .fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .barra-acc{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;align-items:center}
-  .preview{margin-top:20px;background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:16px}
-  .preview img{max-width:100%;border-radius:8px;display:block;margin-top:10px}
+  .preview{margin-top:20px;padding:18px}
+  .preview img{max-width:100%;border-radius:10px;display:block;margin-top:12px;border:1px solid var(--borde)}
 
-  .form{background:var(--panel);border:1px solid var(--borde);border-radius:var(--r);padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px}
+  /* ---------- Configuración ---------- */
+  .form{padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;max-width:920px}
   .form .full{grid-column:1/-1}
-  .chk{display:flex;align-items:center;gap:8px;color:var(--texto);font-size:14px}
-  .chk input{width:auto}
-  .zona-peligro{max-width:900px;margin-top:20px;border:1px solid rgba(239,68,68,.35);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:16px}
+  .seccion{grid-column:1/-1;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:650;border-top:1px solid var(--borde);padding-top:18px;margin-top:6px}
+  .seccion .ico-st{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+  .seccion:first-child{border-top:none;padding-top:0;margin-top:0}
+  .chk{display:flex;align-items:center;gap:10px;color:var(--texto);font-size:13.5px;font-weight:400;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--marca)}
+  .estado-ia{display:flex;gap:10px;align-items:center;background:var(--sup2);border:1px solid var(--borde);border-radius:var(--r2);padding:10px 12px;font-size:13px}
+  .estado-ia.ok{border-color:rgba(34,197,94,.3)} .estado-ia.ok .ic{color:var(--verde)}
+  .estado-ia.warn{border-color:rgba(245,165,36,.3)} .estado-ia.warn .ic{color:var(--ambar)}
+  .ok-txt{color:var(--verde);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .zona-peligro{max-width:920px;margin-top:18px;border:1px solid rgba(242,85,90,.3);background:rgba(242,85,90,.04);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;gap:16px}
+  .zona-peligro .ic{color:var(--rojo)}
   .zona-peligro p{flex:1;color:var(--suave)}
+  .zona-peligro p b{color:var(--texto)}
 
-  .logs{background:#05080f;border:1px solid var(--borde);border-radius:var(--r);padding:14px;font:12.5px/1.6 Consolas,monospace;height:calc(100vh - 330px);min-height:400px;overflow-y:auto}
-  .logs div{white-space:pre-wrap} .logs time{color:var(--tenue);margin-right:8px}
+  /* ---------- Registro ---------- */
+  .logs-cab{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .logs{background:#05080d;border:1px solid var(--borde);border-radius:var(--r);padding:10px 0;font:12.5px/1.65 'Cascadia Code',Consolas,monospace;height:calc(100vh - 300px);min-height:400px;overflow-y:auto}
+  .logs div{display:grid;grid-template-columns:78px 84px 1fr;gap:10px;padding:2px 16px;white-space:pre-wrap}
+  .logs div:hover{background:rgba(255,255,255,.02)}
+  .logs time{color:var(--tenue)}
+  .nivel{font-size:10.5px;font-weight:700;letter-spacing:.06em;border-radius:5px;padding:1px 0;text-align:center;align-self:start;margin-top:2px}
+  .n-ok{color:var(--verde);background:var(--verde-bg)} .n-err{color:var(--rojo);background:var(--rojo-bg)}
+  .n-warn{color:var(--ambar);background:var(--ambar-bg)} .n-ia{color:var(--violeta);background:var(--violeta-bg)}
+  .n-rapida{color:var(--marca2);background:var(--marca-bg)} .n-info{color:var(--suave);background:rgba(148,163,184,.08)}
+  .n-atencion{color:#fcc46b;background:var(--ambar-bg)} .n-prueba{color:var(--cian);background:rgba(34,211,238,.1)}
 
-  #toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--borde);border-radius:10px;padding:10px 16px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:20}
-  #toast.on{opacity:1;transform:none} #toast.err{border-color:var(--rojo);color:#fecaca}
+  #toast{position:fixed;bottom:22px;right:22px;display:flex;gap:10px;align-items:center;background:var(--sup3);border:1px solid var(--borde2);border-radius:12px;padding:11px 16px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:20;box-shadow:0 14px 40px -12px rgba(0,0,0,.8);font-size:13px}
+  #toast.on{opacity:1;transform:none} #toast .ic{color:var(--verde)} #toast.err{border-color:rgba(242,85,90,.5)} #toast.err .ic{color:var(--rojo)}
 
-  @media (max-width:900px){header{flex-wrap:wrap;padding:12px 16px;gap:10px}header h1 small{display:none}main{padding:16px}.stats{grid-template-columns:1fr 1fr}.chats{grid-template-columns:1fr;height:auto}.lista{max-height:300px}.detalle{min-height:500px}.form{grid-template-columns:1fr}}
+  @media (max-width:1100px){.stats{grid-template-columns:1fr 1fr}.graficos{grid-template-columns:1fr}}
+  @media (max-width:860px){
+    .app{grid-template-columns:1fr;height:auto}
+    aside{position:sticky;top:0;z-index:10;border-right:none;border-bottom:1px solid var(--borde)}
+    .marca{padding:12px 16px}.nav-tit,.lado-pie .cuenta-lado{display:none}
+    nav.tabs{flex-direction:row;overflow-x:auto;padding:0 10px 10px}
+    nav.tabs button{width:auto;white-space:nowrap}
+    .lado-pie{position:absolute;top:10px;right:12px;border:none;padding:0}.tarjeta-bot{padding:8px 10px}.tarjeta-bot p{display:none}
+    .barra-sup{padding:12px 16px;flex-wrap:wrap}.contenido{padding:16px}
+    .chats{grid-template-columns:1fr;height:auto}.lista{max-height:340px}.detalle{min-height:520px}
+    .form{grid-template-columns:1fr}.qr{flex-direction:column;text-align:center}
+    .logs div{grid-template-columns:64px 1fr}.logs .nivel{display:none}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1><span class="logo" role="img" aria-label="TAKER"></span>ULTRON <small>Asesor comercial de TAKER · WhatsApp</small><span id="iaPill" class="pill p-gris" style="letter-spacing:0">IA sin configurar</span></h1>
-  <span id="conexion" class="pill p-gris">Iniciando</span>
-  <span id="cuenta" class="cuenta"></span>
-  <span class="esp"></span>
-  <label class="switch" title="Encender o apagar las respuestas automáticas">
-    <span id="lblActivo">Bot activo</span>
-    <input type="checkbox" id="activo"><span class="riel"></span>
-  </label>
-</header>
+<!-- Iconos (trazos propios, estilo línea) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16V5"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><path d="M9 13v2"/><path d="M15 13v2"/><path d="M2 14h2"/><path d="M20 14h2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m7 9 3 3-3 3"/><path d="M13 15h4"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 4H7l3-4z"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18 8a6 6 0 0 0-9.3-5"/><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="m2 2 20 20"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-check-circ" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16v5"/><path d="M16.5 18.5h5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4"/><path d="M4 4h13l-2.5 4.5L17 13H4"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M21 14v7h-7"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h4"/></symbol>
+  <symbol id="i-attach" viewBox="0 0 24 24"><path d="m21.4 11-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v8h14v-8"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+</svg>
 
-<main>
-  <div id="avisoApagado" class="aviso">⏸️ El bot está <b>apagado</b>: los mensajes se registran pero nadie recibe respuesta automática.</div>
-
-  <section id="qr" class="qr">
-    <img id="qrImg" alt="Código QR para vincular WhatsApp">
-    <div>
-      <h2>Vincula tu WhatsApp</h2>
-      <ol>
-        <li>Abre WhatsApp en tu celular</li>
-        <li>Menú ⋮ → <b>Dispositivos vinculados</b> → <b>Vincular dispositivo</b></li>
-        <li>Escanea este código</li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="stats">
-    <div class="stat"><div class="n" id="sMensajes">0</div><div class="l">Mensajes recibidos hoy</div><div class="barras" id="barras"></div></div>
-    <div class="stat"><div class="n" id="sNuevos">0</div><div class="l">Personas nuevas hoy</div></div>
-    <div class="stat"><div class="n" id="sCotiz">0</div><div class="l">Cotizaciones / quieren hablar contigo hoy</div></div>
-    <div class="stat"><div class="n" id="sPausa">0</div><div class="l">Chats esperando tu respuesta</div></div>
-  </section>
-
-  <nav class="tabs" role="tablist">
-    <button class="on" data-tab="tChats">Conversaciones</button>
-    <button data-tab="tClientes">Clientes y demos</button>
-    <button data-tab="tAnalisis">Análisis</button>
-    <button data-tab="tRespuestas">Respuestas del bot</button>
-    <button data-tab="tCatalogo">Catálogo</button>
-    <button data-tab="tConfig">Configuración</button>
-    <button data-tab="tLogs">Registro</button>
-  </nav>
-
-  <!-- CONVERSACIONES -->
-  <section id="tChats" class="tab on">
-    <div class="chats">
-      <div class="lista">
-        <div class="buscar"><div class="seg"><button type="button" data-modo="todos" class="on">Todos mis chats</button><button type="button" data-modo="bot">Atendidos por el bot</button></div><input id="buscar" placeholder="Buscar por nombre o número…" aria-label="Buscar conversación"></div>
-        <ul id="listaChats"></ul>
+<div class="app">
+  <aside>
+    <div class="marca"><span class="logo" role="img" aria-label="TAKER"></span><div><b>ULTRON</b><span>Asesor comercial · TAKER</span></div></div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <div class="nav-tit">Operación</div>
+      <button class="on" data-tab="tChats" data-titulo="Conversaciones" data-sub="Tus chats de WhatsApp y los que atiende el bot"><svg class="ic lg"><use href="#i-chat"/></svg>Conversaciones<span class="cont" id="navPend"></span></button>
+      <button data-tab="tClientes" data-titulo="Clientes y demos" data-sub="Datos que recogió Ultron y estado de cada demo"><svg class="ic lg"><use href="#i-users"/></svg>Clientes y demos</button>
+      <button data-tab="tAnalisis" data-titulo="Análisis" data-sub="Rendimiento del bot en los últimos 30 días"><svg class="ic lg"><use href="#i-chart"/></svg>Análisis</button>
+      <div class="nav-tit">Bot</div>
+      <button data-tab="tRespuestas" data-titulo="Respuestas del bot" data-sub="Prueba a Ultron y revisa las respuestas fijas"><svg class="ic lg"><use href="#i-bot"/></svg>Respuestas del bot</button>
+      <button data-tab="tCatalogo" data-titulo="Catálogo" data-sub="Servicios, precios y el catálogo que reciben tus clientes"><svg class="ic lg"><use href="#i-layers"/></svg>Catálogo</button>
+      <button data-tab="tConfig" data-titulo="Configuración" data-sub="IA, ventas, negocio y comportamiento del bot"><svg class="ic lg"><use href="#i-sliders"/></svg>Configuración</button>
+      <button data-tab="tLogs" data-titulo="Registro" data-sub="Todo lo que hace el bot, en vivo"><svg class="ic lg"><use href="#i-terminal"/></svg>Registro</button>
+    </nav>
+    <div class="lado-pie">
+      <div class="tarjeta-bot">
+        <label class="switch" title="Encender o apagar las respuestas automáticas">
+          <b id="lblActivo">Bot activo</b>
+          <input type="checkbox" id="activo"><span class="riel"></span>
+        </label>
+        <p id="txtActivo">Responde automáticamente a tus clientes</p>
       </div>
-      <div class="detalle" id="detalle"><div class="vacio">Selecciona una conversación</div></div>
+      <div class="cuenta-lado"><span class="av av0" id="avCuenta"><svg class="ic"><use href="#i-phone"/></svg></span><div class="txt"><b id="cuentaNombre">Sin vincular</b><span id="cuenta"></span></div></div>
     </div>
-  </section>
+  </aside>
 
-  <!-- CLIENTES Y DEMOS -->
-  <section id="tClientes" class="tab">
-    <p class="cuenta" style="margin-bottom:14px">Clientes con los que habló Ultron, los datos que recogió y sus demos. Cuando envíes una demo, márcala <b>Entregada</b>: ahí empiezan a contar los días y, al vencer, Ultron le escribe para cerrar la venta.</p>
-    <div class="tabla-env"><table class="tabla" id="tablaClientes"></table></div>
-  </section>
-
-  <!-- ANÁLISIS -->
-  <section id="tAnalisis" class="tab">
-    <p class="cuenta" style="margin-bottom:14px">Datos reales de lo que hace el bot. Las cifras clave y los mensajes por día son de los últimos 30 días; el embudo y los servicios incluyen todas las conversaciones guardadas.</p>
-    <div class="kpis" id="kpis"></div>
-    <div class="graficos">
-      <div class="grafico"><h3>Embudo de ventas</h3><p class="cuenta">De la primera conversación a la venta</p><div id="gEmbudo"></div></div>
-      <div class="grafico"><h3>Servicios más pedidos</h3><p class="cuenta">Según lo que registra el bot en cada cliente</p><div id="gServicios"></div></div>
-      <div class="grafico ancho"><h3>Mensajes recibidos por día</h3><p class="cuenta">Últimos 30 días</p><div id="gDias"></div></div>
-      <div class="grafico ancho"><h3>¿A qué hora te escriben?</h3><p class="cuenta">Mensajes de clientes por hora del día: úsalo para saber cuándo estar atento</p><div id="gHoras"></div></div>
-    </div>
-  </section>
-
-  <!-- RESPUESTAS DEL BOT -->
-  <section id="tRespuestas" class="tab">
-    <div class="sim">
-      <div class="sim-cab"><b>🤖 Probar a Ultron</b><span class="cuenta">Escríbele como si fueras un cliente. Usa la IA real (consume tu saldo de Anthropic), pero no envía nada por WhatsApp.</span><button type="button" id="simReset">Nueva conversación</button></div>
-      <div class="msgs" id="simMsgs"><div class="vacio">Escribe "Hola" para empezar.</div></div>
-      <form class="enviar" id="simForm"><textarea placeholder="Mensaje del cliente…" aria-label="Mensaje de prueba"></textarea><button class="prim">Enviar</button></form>
-    </div>
-    <h3 class="sub">Respuestas del menú clásico (se usan si Ultron no está disponible)</h3>
-    <p class="cuenta" style="margin-bottom:14px">Si la IA falla o no hay API key, el bot responde con este menú. Los textos se cambian en <b>Configuración</b> y en <b>Catálogo</b>.</p>
-    <div class="previas" id="previas"></div>
-  </section>
-
-  <!-- CATÁLOGO -->
-  <section id="tCatalogo" class="tab">
-    <div class="barra-acc">
-      <button class="prim" id="guardarCat">💾 Guardar y regenerar catálogo</button>
-      <button id="agregarServ">＋ Agregar servicio</button>
+  <div class="area">
+    <div class="barra-sup">
+      <div><h1 id="tituloPagina">Conversaciones</h1><p id="subPagina">Tus chats de WhatsApp y los que atiende el bot</p></div>
       <span class="esp"></span>
-      <a href="/catalogo.pdf" target="_blank"><button>📄 Ver PDF</button></a>
+      <span id="iaPill" class="pill p-gris"><svg class="ic sm"><use href="#i-spark"/></svg>IA sin configurar</span>
+      <span id="conexion" class="pill p-gris"><span class="punto"></span>Iniciando</span>
     </div>
-    <div class="servicios" id="servicios"></div>
-    <div class="preview"><b>Vista previa (lo que reciben tus clientes)</b><img id="prevCat" alt="Vista previa del catálogo"></div>
-  </section>
 
-  <!-- CONFIG -->
-  <section id="tConfig" class="tab">
-    <form class="form" id="formClave" autocomplete="off">
-      <div class="seccion">Inteligencia artificial de Ultron</div>
-      <div class="full cuenta" id="claveEstado">Verificando…</div>
-      <div class="full"><label for="c_hf">Token de Hugging Face <span id="okHF"></span> — créalo en huggingface.co → Settings → Access Tokens (tipo "Read" con permiso de Inference Providers)</label><input id="c_hf" type="password" placeholder="hf_…" autocomplete="off" spellcheck="false" data-proveedor="huggingface"></div>
-      <div class="full"><label for="c_clave">API key de Anthropic (opcional, para usar Claude) <span id="okClaude"></span></label><input id="c_clave" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" data-proveedor="claude"></div>
-      <div class="full cuenta">Las claves se guardan solo en este equipo (data/secretos.json) y nunca se vuelven a mostrar.</div>
-      <div class="full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="prim" type="submit">🔑 Guardar y verificar</button><button type="button" class="peligro" data-borrar="huggingface">Quitar token HF</button><button type="button" class="peligro" data-borrar="claude">Quitar key Anthropic</button></div>
-    </form>
-    <div style="height:16px"></div>
-    <form class="form" id="formConfig">
-      <div class="seccion">Ultron</div>
-      <div><label for="c_motor">Cómo responde el bot</label><select id="c_motor" name="motor" class="campo"><option value="local">Ultron con IA local gratis (en este equipo)</option><option value="huggingface">Ultron con IA de Hugging Face (de pago)</option><option value="ia">Ultron con Claude (Anthropic)</option><option value="menu">Menú clásico (sin IA)</option></select></div>
-      <div class="full"><label for="c_modeloHF">Modelo de Hugging Face</label><select id="c_modeloHF" name="modeloHF" class="campo">
-        <option value="deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek V4.1 Flash — rápido y económico (recomendado)</option>
-        <option value="Qwen/Qwen3.8-27B">Qwen 3.8 27B — muy bueno en español</option>
-        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B — Meta</option>
-        <option value="google/gemma-4-31B-it">Gemma 4 31B — Google</option>
-        <option value="openai/gpt-oss-120b">GPT-OSS 120B — OpenAI (abierto)</option>
-        <option value="zai-org/GLM-5.3">GLM 5.3 — más capaz, más costoso</option>
-      </select></div>
-      <div><label for="c_asistente">Nombre del asistente</label><input id="c_asistente" name="asistente"></div>
-      <div class="full"><label for="c_promo">Promoción vigente que Ultron puede ofrecer (déjalo vacío si no hay; Ultron nunca inventa descuentos)</label><textarea id="c_promo" name="promocion" rows="2" placeholder="Ej.: 10% de descuento en páginas web pagando el anticipo antes del 31 de diciembre de 2026"></textarea></div>
-      <div><label for="c_seg">Seguimientos si el cliente deja de responder (horas, separadas por coma; vacío = ninguno)</label><input id="c_seg" name="seguimientosHoras" placeholder="24, 72"></div>
-      <div class="cuenta" style="align-self:end">Solo entre 8:00 a. m. y 8:00 p. m., nunca a quien pidió no recibir mensajes.</div>
+    <main class="contenido">
+      <div class="apilar">
+        <div id="avisoApagado" class="aviso"><svg class="ic lg"><use href="#i-power"/></svg><span>El bot está <b>apagado</b>: los mensajes se registran, pero nadie recibe respuesta automática. Las pruebas en tu propio chat siguen funcionando.</span></div>
 
-      <div class="full"><label for="c_tec">Tecnologías con las que trabajas (si lo dejas vacío, el bot no afirma ninguna y dice que el asesor lo confirma)</label><input id="c_tec" name="tecnologias" placeholder="Ej.: React, Node.js, Python, Flutter, WordPress"></div>
+        <section id="qr" class="qr">
+          <img id="qrImg" alt="Código QR para vincular WhatsApp">
+          <div>
+            <span class="pill p-azul"><svg class="ic sm"><use href="#i-qr"/></svg>Esperando vinculación</span>
+            <h2 style="margin-top:10px">Vincula tu WhatsApp</h2>
+            <p class="suave">El código se renueva cada pocos segundos. Escanéalo apenas aparezca.</p>
+            <ol class="pasos">
+              <li>Abre <b>WhatsApp</b> en tu celular</li>
+              <li>Menú → <b>Dispositivos vinculados</b> → <b>Vincular dispositivo</b></li>
+              <li>Escanea este código</li>
+            </ol>
+          </div>
+        </section>
 
-      <div class="seccion">Ventas</div>
-      <div class="full"><label for="c_pagos">Forma de pago que Ultron comunica</label><input id="c_pagos" name="ventas.pagos"></div>
-      <div><label for="c_desc">Descuento máximo que Ultron puede SOLICITAR (%; tú lo confirmas; 0 = ninguno)</label><input id="c_desc" name="ventas.descuentoMaximo" type="number" min="0" max="50"></div>
-      <div><label for="c_dias">Días de la demo gratuita (cuentan desde que la marcas entregada)</label><input id="c_dias" name="ventas.demoDias" type="number" min="1" max="30"></div>
+        <section class="stats">
+          <div class="tarjeta stat"><div class="n" id="sMensajes">0</div><span class="ico-st az"><svg class="ic lg"><use href="#i-chat"/></svg></span><div class="l">Mensajes recibidos hoy</div><div class="barras" id="barras" title="Últimos 14 días"></div></div>
+          <div class="tarjeta stat"><div class="n" id="sNuevos">0</div><span class="ico-st ve"><svg class="ic lg"><use href="#i-user-plus"/></svg></span><div class="l">Personas nuevas hoy</div></div>
+          <div class="tarjeta stat"><div class="n" id="sCotiz">0</div><span class="ico-st vi"><svg class="ic lg"><use href="#i-flag"/></svg></span><div class="l">Cotizaciones o piden asesor hoy</div></div>
+          <div class="tarjeta stat"><div class="n" id="sPausa">0</div><span class="ico-st am"><svg class="ic lg"><use href="#i-clock"/></svg></span><div class="l">Chats esperando tu respuesta</div></div>
+        </section>
 
-      <div class="seccion">Notas de voz</div>
-      <div class="full"><label class="chk"><input type="checkbox" name="audios.activo"> Ultron envía notas de voz a los chats marcados <b>"Sí, responder siempre"</b></label></div>
-      <div><label for="c_amodo">Qué envía</label><select id="c_amodo" name="audios.modo" class="campo"><option value="audio_y_texto">Nota de voz + el mismo texto escrito</option><option value="solo_audio">Solo nota de voz</option></select></div>
-      <div><label for="c_avoz">Voz</label><select id="c_avoz" name="audios.voz" class="campo"><option value="Raul">Raúl (hombre, México)</option><option value="Sabina">Sabina (mujer, México)</option></select></div>
-      <div><label for="c_avel">Velocidad (1 = normal)</label><input id="c_avel" name="audios.velocidad" type="number" min="0.7" max="1.6" step="0.05"></div>
-      <div><label class="chk" style="margin-top:22px"><input type="checkbox" name="audios.enPruebas"> También en mi chat de prueba</label></div>
+        <!-- CONVERSACIONES -->
+        <section id="tChats" class="tab on">
+          <div class="chats">
+            <div class="lista">
+              <div class="buscar">
+                <div class="seg"><button type="button" data-modo="todos" class="on">Todos mis chats</button><button type="button" data-modo="bot">Atendidos por el bot</button></div>
+                <div class="campo-buscar"><svg class="ic"><use href="#i-search"/></svg><input id="buscar" placeholder="Buscar por nombre o número" aria-label="Buscar conversación"></div>
+              </div>
+              <ul id="listaChats"></ul>
+            </div>
+            <div class="detalle" id="detalle"></div>
+          </div>
+        </section>
 
-      <div class="seccion">Negocio</div>
-      <div><label for="c_dueno">Quién atiende (en "Ya le avisamos a …")</label><input id="c_dueno" name="dueno"></div>
-      <div><label for="c_negocio">Nombre del negocio</label><input id="c_negocio" name="negocio"></div>
-      <div class="full"><label for="c_eslogan">Eslogan</label><input id="c_eslogan" name="eslogan"></div>
-      <div><label for="c_horario">Horario</label><input id="c_horario" name="horario"></div>
-      <div><label for="c_moneda">Moneda</label><input id="c_moneda" name="moneda"></div>
-      <div><label for="c_email">Email</label><input id="c_email" name="contacto.email"></div>
-      <div><label for="c_web">Web</label><input id="c_web" name="contacto.web"></div>
-      <div><label for="c_github">GitHub</label><input id="c_github" name="contacto.github"></div>
-      <div><label for="c_linkedin">LinkedIn</label><input id="c_linkedin" name="contacto.linkedin" placeholder="Pendiente"></div>
-      <div class="full"><label for="c_bienv">Mensaje de bienvenida (primer mensaje que recibe un cliente; *texto* = negrita)</label><textarea id="c_bienv" name="bienvenida" rows="8"></textarea></div>
-      <div><label for="c_pausa">Horas de pausa cuando respondes tú</label><input id="c_pausa" name="pausaTrasRespuestaManualHoras" type="number" min="0.1" step="0.5"></div>
-      <div><label for="c_reinicio">Minutos sin hablar para volver a mostrar el menú</label><input id="c_reinicio" name="reinicioConversacionMinutos" type="number" min="1"></div>
-      <div class="full"><label for="c_ign">Números que el bot nunca debe contestar (uno por línea, con código de país)</label><textarea id="c_ign" name="numerosIgnorados" rows="3" placeholder="573001234567"></textarea></div>
-      <div class="full"><label class="chk"><input type="checkbox" name="probarConmigo"> Modo prueba: el bot me responde cuando me escribo a mí mismo (mi propio chat). Funciona aunque el bot esté apagado.</label></div>
-      <div class="full cuenta">El bot solo responde en chats privados; en grupos nunca habla. Para elegir persona por persona, abre el chat en <b>Conversaciones</b> y cambia <b>Respuesta automática</b>.</div>
-      <div class="full"><button class="prim" type="submit">💾 Guardar configuración</button></div>
-    </form>
-    <div class="zona-peligro">
-      <p><b>Cerrar sesión de WhatsApp.</b> Desvincula este equipo; tendrás que escanear el QR otra vez.</p>
-      <button class="peligro" id="logout">Cerrar sesión</button>
-    </div>
-  </section>
+        <!-- CLIENTES Y DEMOS -->
+        <section id="tClientes" class="tab">
+          <p class="intro">Clientes con los que habló Ultron, los datos que recogió y sus demos. Cuando envíes una demo, márcala <b>Entregada</b>: ahí empiezan a contar los días y, al vencer, Ultron le escribe para cerrar la venta.</p>
+          <div class="tarjeta tabla-env"><table class="tabla" id="tablaClientes"></table></div>
+        </section>
 
-  <!-- LOGS -->
-  <section id="tLogs" class="tab"><div class="logs" id="logs"></div></section>
-</main>
-<div id="toast" role="status"></div>
+        <!-- ANÁLISIS -->
+        <section id="tAnalisis" class="tab">
+          <p class="intro">Las cifras clave y los mensajes por día son de los últimos 30 días; el embudo y los servicios incluyen todas las conversaciones guardadas.</p>
+          <div class="kpis" id="kpis"></div>
+          <div class="graficos">
+            <div class="tarjeta grafico"><h3>Embudo de ventas</h3><p class="tenue">De la primera conversación a la venta</p><div id="gEmbudo"></div></div>
+            <div class="tarjeta grafico"><h3>Servicios más pedidos</h3><p class="tenue">Según lo que registra el bot en cada cliente</p><div id="gServicios"></div></div>
+            <div class="tarjeta grafico ancho"><h3>Mensajes recibidos por día</h3><p class="tenue">Últimos 30 días</p><div id="gDias"></div></div>
+            <div class="tarjeta grafico ancho"><h3>Horas en que te escriben</h3><p class="tenue">Mensajes de clientes por hora del día: úsalo para saber cuándo estar atento</p><div id="gHoras"></div></div>
+          </div>
+        </section>
+
+        <!-- RESPUESTAS DEL BOT -->
+        <section id="tRespuestas" class="tab">
+          <div class="tarjeta sim">
+            <div class="sim-cab">
+              <div class="tit"><span class="ico-st az"><svg class="ic lg"><use href="#i-bot"/></svg></span><b>Probar a Ultron</b></div>
+              <span class="tenue">Escríbele como si fueras un cliente. No envía nada por WhatsApp. Las respuestas fijas no gastan IA.</span>
+              <button type="button" class="btn sm" id="simReset"><svg class="ic sm"><use href="#i-refresh"/></svg>Nueva conversación</button>
+            </div>
+            <div class="msgs" id="simMsgs"></div>
+            <form class="enviar" id="simForm"><textarea placeholder="Mensaje del cliente" aria-label="Mensaje de prueba"></textarea><button class="btn prim"><svg class="ic"><use href="#i-send"/></svg>Enviar</button></form>
+          </div>
+          <h3 class="sub">Respuestas fijas del bot</h3>
+          <p class="intro">La ficha inicial y el menú se responden al instante, sin IA. Los textos se cambian en <b>Configuración</b> y en <b>Catálogo</b>.</p>
+          <div class="previas" id="previas"></div>
+        </section>
+
+        <!-- CATÁLOGO -->
+        <section id="tCatalogo" class="tab">
+          <div class="barra-acc">
+            <button class="btn prim" id="guardarCat"><svg class="ic"><use href="#i-save"/></svg><span>Guardar y regenerar catálogo</span></button>
+            <button class="btn" id="agregarServ"><svg class="ic"><use href="#i-plus"/></svg>Agregar servicio</button>
+            <span class="esp"></span>
+            <a class="btn" href="/catalogo.pdf" target="_blank" rel="noopener"><svg class="ic"><use href="#i-file"/></svg>Ver PDF</a>
+          </div>
+          <div class="servicios" id="servicios"></div>
+          <div class="tarjeta preview"><b>Vista previa</b><p class="tenue">La imagen que reciben tus clientes</p><img id="prevCat" alt="Vista previa del catálogo"></div>
+        </section>
+
+        <!-- CONFIG -->
+        <section id="tConfig" class="tab">
+          <form class="tarjeta form" id="formClave" autocomplete="off">
+            <div class="seccion"><span class="ico-st vi"><svg class="ic"><use href="#i-spark"/></svg></span>Inteligencia artificial de Ultron</div>
+            <div class="full estado-ia" id="claveEstado">Verificando…</div>
+            <div class="full"><label for="c_hf">Token de Hugging Face <span id="okHF"></span></label><input id="c_hf" type="password" placeholder="hf_…" autocomplete="off" spellcheck="false" data-proveedor="huggingface"><p class="ayuda">Créalo en huggingface.co → Settings → Access Tokens (tipo "Read" con permiso de Inference Providers).</p></div>
+            <div class="full"><label for="c_clave">API key de Anthropic, opcional para usar Claude <span id="okClaude"></span></label><input id="c_clave" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" data-proveedor="claude"></div>
+            <p class="full tenue">Las claves se guardan solo en este equipo (data/secretos.json) y nunca se vuelven a mostrar.</p>
+            <div class="full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn prim" type="submit"><svg class="ic"><use href="#i-key"/></svg><span>Guardar y verificar</span></button><button type="button" class="btn peligro" data-borrar="huggingface">Quitar token de Hugging Face</button><button type="button" class="btn peligro" data-borrar="claude">Quitar key de Anthropic</button></div>
+          </form>
+          <div style="height:16px"></div>
+          <form class="tarjeta form" id="formConfig">
+            <div class="seccion"><span class="ico-st az"><svg class="ic"><use href="#i-bot"/></svg></span>Ultron</div>
+            <div><label for="c_motor">Cómo responde el bot</label><select id="c_motor" name="motor" class="campo"><option value="local">IA local gratis (en este equipo)</option><option value="huggingface">IA de Hugging Face (de pago)</option><option value="ia">Claude (Anthropic)</option><option value="menu">Solo respuestas fijas y menú (sin IA)</option></select></div>
+            <div><label for="c_asistente">Nombre del asistente</label><input id="c_asistente" name="asistente"></div>
+            <div class="full"><label for="c_modeloHF">Modelo de Hugging Face</label><select id="c_modeloHF" name="modeloHF" class="campo">
+              <option value="deepseek-ai/DeepSeek-V4.1-Flash-1017">DeepSeek V4.1 Flash — rápido y económico (recomendado)</option>
+              <option value="Qwen/Qwen3.8-27B">Qwen 3.8 27B — muy bueno en español</option>
+              <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B — Meta</option>
+              <option value="google/gemma-4-31B-it">Gemma 4 31B — Google</option>
+              <option value="openai/gpt-oss-120b">GPT-OSS 120B — OpenAI (abierto)</option>
+              <option value="zai-org/GLM-5.3">GLM 5.3 — más capaz, más costoso</option>
+            </select></div>
+            <div class="full"><label for="c_promo">Promoción vigente que Ultron puede ofrecer</label><textarea id="c_promo" name="promocion" rows="2" placeholder="Ej.: 10% de descuento en páginas web pagando el anticipo antes del 31 de diciembre"></textarea><p class="ayuda">Déjalo vacío si no hay. Ultron nunca inventa descuentos.</p></div>
+            <div><label for="c_seg">Seguimientos si el cliente deja de responder (horas)</label><input id="c_seg" name="seguimientosHoras" placeholder="24, 72"><p class="ayuda">Separadas por coma; vacío = ninguno. Solo de 8:00 a. m. a 8:00 p. m.</p></div>
+            <div><label for="c_tec">Tecnologías con las que trabajas</label><input id="c_tec" name="tecnologias" placeholder="Ej.: React, Node.js, Python, Flutter"><p class="ayuda">Si lo dejas vacío, el bot no afirma ninguna.</p></div>
+
+            <div class="seccion"><span class="ico-st ve"><svg class="ic"><use href="#i-dollar"/></svg></span>Ventas</div>
+            <div class="full"><label for="c_pagos">Resumen de formas de pago</label><input id="c_pagos" name="ventas.pagos"><p class="ayuda">Las 4 formas de pago detalladas están en config.json (formasPago).</p></div>
+            <div><label for="c_desc">Descuento máximo que Ultron puede solicitar (%)</label><input id="c_desc" name="ventas.descuentoMaximo" type="number" min="0" max="50"><p class="ayuda">Tú lo confirmas; 0 = ninguno.</p></div>
+            <div><label for="c_dias">Días de la demo gratuita</label><input id="c_dias" name="ventas.demoDias" type="number" min="1" max="30"><p class="ayuda">Cuentan desde que la marcas entregada.</p></div>
+
+            <div class="seccion"><span class="ico-st am"><svg class="ic"><use href="#i-mic"/></svg></span>Notas de voz</div>
+            <div class="full"><label class="chk"><input type="checkbox" name="audios.activo"> Ultron envía notas de voz a los chats marcados "Sí, responder siempre"</label></div>
+            <div><label for="c_amodo">Qué envía</label><select id="c_amodo" name="audios.modo" class="campo"><option value="audio_y_texto">Nota de voz y el mismo texto escrito</option><option value="solo_audio">Solo nota de voz</option></select></div>
+            <div><label for="c_avoz">Voz</label><select id="c_avoz" name="audios.voz" class="campo"><option value="Raul">Raúl (hombre, México)</option><option value="Sabina">Sabina (mujer, México)</option></select></div>
+            <div><label for="c_avel">Velocidad (1 = normal)</label><input id="c_avel" name="audios.velocidad" type="number" min="0.7" max="1.6" step="0.05"></div>
+            <div style="align-self:end;padding-bottom:10px"><label class="chk"><input type="checkbox" name="audios.enPruebas"> También en mi chat de prueba</label></div>
+
+            <div class="seccion"><span class="ico-st az"><svg class="ic"><use href="#i-store"/></svg></span>Negocio</div>
+            <div><label for="c_negocio">Nombre del negocio</label><input id="c_negocio" name="negocio"></div>
+            <div><label for="c_dueno">Quién atiende (en "Ya le avisamos a…")</label><input id="c_dueno" name="dueno"></div>
+            <div class="full"><label for="c_eslogan">Eslogan</label><input id="c_eslogan" name="eslogan"></div>
+            <div><label for="c_horario">Horario</label><input id="c_horario" name="horario"></div>
+            <div><label for="c_moneda">Moneda</label><input id="c_moneda" name="moneda"></div>
+            <div><label for="c_email">Email</label><input id="c_email" name="contacto.email"></div>
+            <div><label for="c_web">Web o portafolio</label><input id="c_web" name="contacto.web"></div>
+            <div><label for="c_github">GitHub</label><input id="c_github" name="contacto.github"></div>
+            <div><label for="c_linkedin">LinkedIn</label><input id="c_linkedin" name="contacto.linkedin" placeholder="Pendiente"></div>
+            <div class="full"><label for="c_bienv">Mensaje de bienvenida del menú (*texto* = negrita)</label><textarea id="c_bienv" name="bienvenida" rows="7"></textarea><p class="ayuda">Se muestra cuando el cliente escribe un número o "menu" como primer mensaje. El primer mensaje normal recibe la ficha inicial.</p></div>
+
+            <div class="seccion"><span class="ico-st vi"><svg class="ic"><use href="#i-sliders"/></svg></span>Comportamiento</div>
+            <div><label for="c_pausa">Horas de pausa cuando respondes tú</label><input id="c_pausa" name="pausaTrasRespuestaManualHoras" type="number" min="0.1" step="0.5"></div>
+            <div><label for="c_reinicio">Minutos sin hablar para empezar de nuevo</label><input id="c_reinicio" name="reinicioConversacionMinutos" type="number" min="1"></div>
+            <div class="full"><label for="c_ign">Números que el bot nunca debe contestar</label><textarea id="c_ign" name="numerosIgnorados" rows="3" placeholder="573001234567"></textarea><p class="ayuda">Uno por línea, con código de país y sin "+".</p></div>
+            <div class="full"><label class="chk"><input type="checkbox" name="probarConmigo"> Modo prueba: el bot me responde cuando me escribo a mí mismo (funciona aunque el bot esté apagado)</label></div>
+            <p class="full tenue">El bot solo responde en chats privados; en grupos nunca habla. Para elegir persona por persona, abre el chat en Conversaciones y cambia "Respuesta automática".</p>
+            <div class="full"><button class="btn prim" type="submit"><svg class="ic"><use href="#i-save"/></svg>Guardar configuración</button></div>
+          </form>
+          <div class="zona-peligro">
+            <svg class="ic lg"><use href="#i-logout"/></svg>
+            <p><b>Cerrar sesión de WhatsApp.</b> Desvincula este equipo; tendrás que escanear el QR otra vez.</p>
+            <button class="btn peligro" id="logout">Cerrar sesión</button>
+          </div>
+        </section>
+
+        <!-- REGISTRO -->
+        <section id="tLogs" class="tab">
+          <div class="logs-cab" id="logsFiltro">
+            <button class="btn sm prim" data-nivel="">Todo</button>
+            <button class="btn sm" data-nivel="atencion">Atención</button>
+            <button class="btn sm" data-nivel="ia">IA</button>
+            <button class="btn sm" data-nivel="rapida">Sin IA</button>
+            <button class="btn sm" data-nivel="err">Errores</button>
+          </div>
+          <div class="logs" id="logs"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toast" role="status"><svg class="ic"><use href="#i-check-circ"/></svg><span></span></div>
 
 <script>
 const $ = (s) => document.querySelector(s);
-const fmtWa = (s) => esc(s).replace(/\*([^*\n]+)\*/g, '<b>$1</b>').replace(/(^|\s)_([^_\n]+)_(?=\s|$)/g, '$1<i>$2</i>');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-let estado = null, chatSel = null, catalogo = [], forzarAbajo = false;
+const fmtWa = (s) => esc(s).replace(/\*([^*\n]+)\*/g, '<b>$1</b>').replace(/(^|\s)_([^_\n]+)_(?=\s|$)/g, '$1<i>$2</i>');
+const I = (n, c = '') => `<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+// Quita emojis de nombres y vistas previas (la interfaz usa sus propios iconos)
+const sinEmoji = (s) => String(s ?? '').replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}️‍⃣]/gu, '').replace(/\s{2,}/g, ' ').trim();
+const iniciales = (n) => { const p = sinEmoji(n).replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean); return ((p[0]?.[0] || '') + (p[1]?.[0] || '')).toUpperCase() || '#'; };
+const colorDe = (s) => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return h % 6; };
+const avatar = (nombre, id, esGrupo, cls = '') => {
+  if (esGrupo) return `<span class="av grupo ${cls}">${I('users')}</span>`;
+  // Contactos guardados solo con su número: icono de persona en vez de dígitos
+  if (!/\p{L}/u.test(sinEmoji(nombre))) return `<span class="av av${colorDe(id)} ${cls}">${I('user')}</span>`;
+  return `<span class="av av${colorDe(id)} ${cls}">${esc(iniciales(nombre))}</span>`;
+};
+const vacio = (ico, titulo, txt = '') => `<div class="vacio"><span class="circ">${I(ico, 'lg')}</span><b>${esc(titulo)}</b>${txt ? `<span>${txt}</span>` : ''}</div>`;
+let estado = null, chatSel = null, catalogo = [], forzarAbajo = false, filtroLog = '';
 let modo = 'todos', waChats = null, waError = null, waCargando = false, waDet = null;
 
 async function api(ruta, metodo = 'GET', cuerpo) {
@@ -345,73 +566,84 @@ async function api(ruta, metodo = 'GET', cuerpo) {
   return d;
 }
 function toast(txt, err) {
-  const t = $('#toast'); t.textContent = txt; t.className = 'on' + (err ? ' err' : '');
+  const t = $('#toast'); t.querySelector('span').textContent = txt;
+  t.querySelector('use').setAttribute('href', err ? '#i-alert' : '#i-check-circ');
+  t.className = 'on' + (err ? ' err' : '');
   clearTimeout(toast.t); toast.t = setTimeout(() => t.className = '', 2800);
 }
-async function accion(fn, okTxt) { try { await fn(); if (okTxt) toast(okTxt); } catch (e) { toast('❌ ' + e.message, true); } }
+async function accion(fn, okTxt) { try { await fn(); if (okTxt) toast(okTxt); } catch (e) { toast(e.message, true); } }
 
 const hora = (t) => {
-  const d = new Date(t), hoy = new Date();
-  return d.toDateString() === hoy.toDateString() ? d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('es', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+  const d = new Date(t), hoy = new Date(), ayer = new Date(Date.now() - 864e5);
+  const hm = d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+  if (d.toDateString() === hoy.toDateString()) return hm;
+  if (d.toDateString() === ayer.toDateString()) return 'Ayer';
+  return d.toLocaleDateString('es', { day: '2-digit', month: 'short' });
 };
+const horaCompleta = (t) => { const d = new Date(t); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('es', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }); };
 const restante = (t) => { const m = Math.round((t - Date.now()) / 60000); return m >= 60 ? Math.round(m / 60) + ' h' : m + ' min'; };
-const ESTADOS = { ultron: 'Conversando con Ultron', menu: 'En menú', precios: 'Viendo precios', servicio: 'Viendo servicio', cotizacion: 'Escribiendo cotización', cotizacion_enviada: 'Pidió cotización', humano: 'Quiere hablar contigo' };
+const ESTADOS = { ultron: 'Conversando con Ultron', menu: 'En el menú', precios: 'Viendo precios', servicio: 'Viendo un servicio', cotizacion: 'Escribiendo cotización', cotizacion_enviada: 'Pidió cotización', humano: 'Quiere hablar contigo', demo: 'Pidiendo la demo', demo_solicitada: 'Demo solicitada' };
 function badgeChat(c) {
   if (c.pausadoHasta) {
     const urg = c.estado === 'humano' || c.estado === 'cotizacion_enviada';
-    return `<span class="pill ${urg ? 'p-ambar' : 'p-azul'}">${urg ? esc(ESTADOS[c.estado]) : 'Pausado'} · ${restante(c.pausadoHasta)}</span>`;
+    return `<span class="pill ${urg ? 'p-ambar' : 'p-gris'}">${I(urg ? 'bell' : 'pause', 'sm')}${urg ? esc(ESTADOS[c.estado]) : 'Bot en pausa'} · ${restante(c.pausadoHasta)}</span>`;
   }
-  return `<span class="pill p-azul">${esc(ESTADOS[c.estado] || 'Bot atendiendo')}</span>`;
+  return `<span class="pill p-azul">${I('bot', 'sm')}${esc(ESTADOS[c.estado] || 'Bot atendiendo')}</span>`;
 }
 
-// ---------- Render ----------
+// ---------- Render general ----------
 function render() {
   const e = estado;
-  const CONX = { conectado: ['Conectado', 'p-verde'], qr: ['Esperando QR', 'p-ambar'], cargando: ['Cargando…', 'p-azul'], autenticado: ['Autenticado…', 'p-azul'], iniciando: ['Iniciando…', 'p-gris'], desconectado: ['Desconectado', 'p-rojo'], error: ['Error', 'p-rojo'] };
+  const CONX = { conectado: ['Conectado', 'p-verde'], qr: ['Esperando QR', 'p-ambar'], cargando: ['Cargando', 'p-azul'], autenticado: ['Autenticando', 'p-azul'], iniciando: ['Iniciando', 'p-gris'], desconectado: ['Desconectado', 'p-rojo'], error: ['Error', 'p-rojo'] };
   const [txt, cls] = CONX[e.conexion] || [e.conexion, 'p-gris'];
-  $('#conexion').textContent = txt; $('#conexion').className = 'pill ' + cls;
-  $('#cuenta').textContent = e.cuenta ? `${e.cuenta.nombre} · +${e.cuenta.numero}` : '';
+  $('#conexion').innerHTML = `<span class="punto"></span>${esc(txt)}`; $('#conexion').className = 'pill ' + cls;
+  $('#cuentaNombre').textContent = e.cuenta ? sinEmoji(e.cuenta.nombre) || 'WhatsApp' : 'Sin vincular';
+  $('#cuenta').textContent = e.cuenta ? '+' + e.cuenta.numero : '';
+  $('#avCuenta').innerHTML = e.cuenta ? esc(iniciales(e.cuenta.nombre)) : I('phone');
   $('#activo').checked = e.activo;
   $('#lblActivo').textContent = e.activo ? 'Bot activo' : 'Bot apagado';
-  $('#avisoApagado').style.display = e.activo ? 'none' : 'block';
+  $('#txtActivo').textContent = e.activo ? 'Responde automáticamente a tus clientes' : 'No responde a nadie (solo tus pruebas)';
+  $('#avisoApagado').style.display = e.activo ? 'none' : 'flex';
   $('#qr').style.display = e.qr ? 'flex' : 'none';
   if (e.qr) $('#qrImg').src = e.qr;
 
   const h = e.stats.hoy;
   $('#sMensajes').textContent = h.mensajes || 0;
   $('#sNuevos').textContent = h.nuevos || 0;
-  $('#sCotiz').textContent = (h.cotizaciones || 0) + (h.humano || 0);
-  $('#sPausa').textContent = e.chats.filter((c) => c.pausadoHasta && (c.estado === 'humano' || c.estado === 'cotizacion_enviada')).length;
+  $('#sCotiz').textContent = (h.cotizaciones || 0) + (h.humano || 0) + (h.contratar || 0);
+  const pendientes = e.chats.filter((c) => c.pausadoHasta && (c.estado === 'humano' || c.estado === 'cotizacion_enviada')).length;
+  $('#sPausa').textContent = pendientes;
+  $('#navPend').textContent = pendientes; $('#navPend').style.display = pendientes ? 'inline-block' : 'none';
   const dias = [...Array(14)].map((_, i) => { const d = new Date(Date.now() - (13 - i) * 864e5).toISOString().slice(0, 10); return e.stats.dias[d]?.mensajes || 0; });
   const max = Math.max(1, ...dias);
-  $('#barras').innerHTML = dias.map((n, i) => `<i style="height:${(n / max) * 100}%" title="${n} mensajes"></i>`).join('');
+  $('#barras').innerHTML = dias.map((n) => `<i style="height:${(n / max) * 100}%" title="${n} mensajes"></i>`).join('');
 
   renderLista(); renderDetalle(); renderLogs(); renderClientes(); renderAnalisis();
 }
 
-// ---------- Respuestas del bot (vista previa) ----------
+// ---------- Respuestas fijas (vista previa) ----------
 async function cargarVistaPrevia() {
   try {
     const casos = await api('/api/vista-previa');
     $('#previas').innerHTML = casos.map((c) => `
-      <div class="previa">
+      <div class="tarjeta previa">
         <h3>${esc(c.titulo)}</h3>
         <div class="cli">${esc(c.cliente)}</div>
-        ${c.respuestas.map((r) => `<div class="b bot"><div class="quien">🤖 Respuesta del bot</div>${fmtWa(r)}</div>`).join('')}
-        ${c.pausa ? '<div class="cuenta">⏸️ Después de esto el bot se pausa en ese chat y te avisa.</div>' : ''}
+        ${c.respuestas.map((r) => `<div class="b bot"><div class="quien">${I('bot', 'sm')}Respuesta del bot</div>${fmtWa(r)}</div>`).join('')}
+        ${c.pausa ? `<div class="efecto">${I('pause', 'sm')}<span>Después de esto el bot se pausa en ese chat y te avisa.</span></div>` : ''}
       </div>`).join('');
-  } catch (e) { $('#previas').innerHTML = `<div class="vacio">${esc(e.message)}</div>`; }
+  } catch (e) { $('#previas').innerHTML = vacio('alert', 'No se pudo cargar', esc(e.message)); }
 }
 
 // ---------- Respuesta automática por persona ----------
 const esGrupoId = (id) => String(id).endsWith('@g.us');
 function selectorModo(id) {
-  if (!id || esGrupoId(id)) return '<span class="pill p-gris" title="El bot nunca responde en grupos">Grupo · bot desactivado</span>';
+  if (!id || esGrupoId(id)) return `<span class="pill p-gris" title="El bot nunca responde en grupos">${I('users', 'sm')}Grupo · el bot no responde</span>`;
   const m = estado?.modos?.[id] || 'auto';
   return `<label class="modo">Respuesta automática
     <select data-modo-chat class="${m}">
-      <option value="auto" ${m === 'auto' ? 'selected' : ''}>Automática (solo si no es mi contacto)</option>
-      <option value="siempre" ${m === 'siempre' ? 'selected' : ''}>Sí, responder siempre</option>
+      <option value="auto" ${m === 'auto' ? 'selected' : ''}>Automática (si no es mi contacto)</option>
+      <option value="siempre" ${m === 'siempre' ? 'selected' : ''}>Responder siempre</option>
       <option value="nunca" ${m === 'nunca' ? 'selected' : ''}>No responder nunca</option>
     </select></label>`;
 }
@@ -432,61 +664,83 @@ async function cargarMensajesWa(id) {
     if (id === chatSel) { waDet = d; renderDetalle(); }
   } catch (e) { if (id === chatSel) { waDet = { error: e.message }; renderDetalle(); } }
 }
+const nombreVisible = (nombre, numero) => sinEmoji(nombre) || (numero ? '+' + numero : 'Sin nombre');
 
 function renderListaWa() {
   const el = $('#listaChats');
-  if (estado?.conexion !== 'conectado') { el.innerHTML = '<div class="vacio">Conecta tu WhatsApp (escanea el QR de arriba) para ver aquí todos tus chats.</div>'; return; }
-  if (waError && !waChats) { el.innerHTML = `<div class="vacio">No se pudieron cargar los chats: ${esc(waError)}</div>`; return; }
-  if (!waChats) { el.innerHTML = '<div class="vacio">Cargando tus chats…</div>'; return; }
+  if (estado?.conexion !== 'conectado') { el.innerHTML = vacio('qr', 'WhatsApp no está conectado', 'Escanea el QR para ver aquí todos tus chats.'); return; }
+  if (waError && !waChats) { el.innerHTML = vacio('alert', 'No se pudieron cargar los chats', esc(waError)); return; }
+  if (!waChats) { el.innerHTML = vacio('refresh', 'Cargando tus chats'); return; }
   const q = $('#buscar').value.toLowerCase().trim();
   const chats = waChats.filter((c) => !q || (c.nombre || '').toLowerCase().includes(q) || (c.numero || '').includes(q));
   el.innerHTML = chats.length ? chats.map((c) => {
     const m = estado?.modos?.[c.id];
-    const tagModo = m === 'siempre' ? '<span title="El bot siempre le responde">✅</span>' : m === 'nunca' ? '<span title="El bot nunca le responde">🚫</span>' : '';
+    const tags = [
+      m === 'siempre' ? `<span class="t-si" title="El bot siempre le responde">${I('check-circ')}</span>` : '',
+      m === 'nunca' ? `<span class="t-no" title="El bot nunca le responde">${I('ban')}</span>` : '',
+      c.bot ? `<span class="t-bot" title="El bot ha atendido este chat">${I('bot')}</span>` : '',
+      c.silenciado ? `<span title="Silenciado">${I('mute')}</span>` : '',
+      c.fijado ? `<span title="Fijado">${I('pin')}</span>` : '',
+      c.noLeidos ? `<span class="nl">${c.noLeidos}</span>` : '',
+    ].join('');
+    const prev = sinEmoji((c.ultimoTexto || '').split('\n')[0]) || (c.ultimoTexto ? 'Mensaje' : '');
     return `
-    <li data-id="${esc(c.id)}" class="${c.id === chatSel ? 'sel' : ''}">
-      <span class="nom">${c.fijado ? '📌 ' : ''}${c.esGrupo ? '👥 ' : ''}${esc(c.nombre)}</span><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span>
-      <span class="ult">${c.ultimoDeMi ? 'Tú: ' : ''}${esc((c.ultimoTexto || '').split('\n')[0])}</span>
-      <span class="tags">${tagModo}${c.bot ? '<span title="El bot ha atendido este chat">🤖</span>' : ''}${c.silenciado ? '<span title="Silenciado">🔕</span>' : ''}${c.noLeidos ? `<span class="nl">${c.noLeidos}</span>` : ''}</span>
+    <li data-id="${esc(c.id)}" class="${c.id === chatSel ? 'sel' : ''} ${c.noLeidos ? 'no-leido' : ''}">
+      ${avatar(c.nombre, c.id, c.esGrupo)}
+      <div class="cuerpo"><div class="nom">${esc(nombreVisible(c.nombre, c.numero))}</div>
+        <div class="ult">${c.ultimoDeMi ? '<span class="tenue">Tú: </span>' : ''}${esc(prev)}</div></div>
+      <div class="lado-der"><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span><span class="tags">${tags}</span></div>
     </li>`;
-  }).join('') : `<div class="vacio">${q ? 'Sin resultados' : 'No hay chats.'}</div>`;
+  }).join('') : vacio('search', q ? 'Sin resultados' : 'No hay chats');
 }
+
+function burbujas(lista, nombreCliente) {
+  return lista.map((m) => {
+    const quien = m.tipo === 'cliente' ? '' : m.tipo === 'bot' ? `<div class="quien">${I('bot', 'sm')}Bot</div>` : `<div class="quien">${I('user', 'sm')}Tú</div>`;
+    return `<div class="b ${m.tipo}">${m.autor ? `<div class="autor">${esc(sinEmoji(m.autor) || m.autor)}</div>` : ''}${quien}${fmtWa(m.texto)}<small>${horaCompleta(m.t)}</small></div>`;
+  }).join('');
+}
+
+function cabeceraChat({ nombre, numero, id, esGrupo, sesion, acciones }) {
+  return `
+    <div class="det-cab">
+      ${avatar(nombre, id, esGrupo, 'lg')}
+      <div><div class="nom">${esc(nombreVisible(nombre, numero))}</div><div class="sub">${numero ? '+' + esc(numero) : esGrupo ? 'Grupo' : ''}</div></div>
+      ${sesion ? badgeChat(sesion) : ''}
+      <div class="acc">${acciones}</div>
+    </div>`;
+}
+
+function preservarDetalle(det) {
+  const taPrev = det.querySelector('textarea');
+  const msgs = det.querySelector('.msgs');
+  return { borrador: taPrev?.value || '', foco: taPrev && document.activeElement === taPrev, abajo: !msgs || forzarAbajo || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40 };
+}
+function restaurarDetalle(det, p, bajar = true) {
+  const nm = det.querySelector('.msgs');
+  if (p.abajo && bajar) { nm.scrollTop = nm.scrollHeight; forzarAbajo = false; }
+  if (p.foco) { const ta = det.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+const formEnviar = (borrador, pausa) => `<form class="enviar"><textarea placeholder="Escribe un mensaje${pausa ? ' (el bot se pausará en este chat)' : ''}" aria-label="Mensaje">${esc(borrador)}</textarea><button class="btn prim">${I('send')}Enviar</button></form>`;
 
 function renderDetalleWa() {
   const det = $('#detalle');
-  if (!chatSel) { det.innerHTML = '<div class="vacio">Selecciona un chat</div>'; return; }
+  if (!chatSel) { det.innerHTML = vacio('chat', 'Selecciona un chat', 'Aquí verás la conversación y podrás responder.'); return; }
   const resumen = waChats?.find((x) => x.id === chatSel) || {};
   const sesion = estado.chats.find((x) => x.id === chatSel);
-  const taPrev = det.querySelector('textarea');
-  const borrador = taPrev?.value || '';
-  const teniaFoco = taPrev && document.activeElement === taPrev;
-  const msgs = det.querySelector('.msgs');
-  const pegadoAbajo = !msgs || forzarAbajo || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40;
+  const p = preservarDetalle(det);
   const nombre = waDet?.nombre || resumen.nombre || '';
   const numero = waDet?.numero ?? resumen.numero;
   let cuerpo;
-  if (!waDet) cuerpo = '<div class="vacio">Cargando mensajes…</div>';
-  else if (waDet.error) cuerpo = `<div class="vacio">No se pudieron cargar los mensajes: ${esc(waDet.error)}</div>`;
-  else if (!waDet.mensajes.length) cuerpo = '<div class="vacio">Sin mensajes recientes.</div>';
-  else cuerpo = waDet.mensajes.map((m) => `<div class="b ${m.deMi ? (m.bot ? 'bot' : 'tu') : 'cliente'}">${m.autor ? `<div class="autor">${esc(m.autor)}</div>` : ''}${m.deMi ? `<div class="quien">${m.bot ? '🤖 Respuesta del bot' : '🙋 Tú'}</div>` : ''}${fmtWa(m.texto)}<small>${hora(m.t)}</small></div>`).join('');
-  det.innerHTML = `
-    <div class="det-cab">
-      <div><div class="nom">${esc(nombre)}</div><div class="cuenta">${numero ? '+' + esc(numero) : 'Grupo'}</div></div>
-      ${sesion ? badgeChat(sesion) : ''}
-      <div class="acc">
-        ${selectorModo(chatSel)}
-        ${sesion ? (sesion.pausadoHasta
-          ? `<button data-acc="reanudar">▶️ Reanudar bot</button>`
-          : `<button data-acc="pausar" data-h="1">⏸️ Pausar 1 h</button>`) : ''}
-        ${numero ? `<a href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener"><button>Abrir en WhatsApp</button></a>` : ''}
-      </div>
-    </div>
-    ${fichaHtml(sesion)}
-    <div class="msgs">${cuerpo}</div>
-    <form class="enviar"><textarea placeholder="Escribe un mensaje…${sesion ? ' (el bot se pausará en este chat)' : ''}" aria-label="Mensaje">${esc(borrador)}</textarea><button class="prim">Enviar</button></form>`;
-  const nm = det.querySelector('.msgs');
-  if (pegadoAbajo && waDet) { nm.scrollTop = nm.scrollHeight; forzarAbajo = false; }
-  if (teniaFoco) { const ta = det.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (!waDet) cuerpo = vacio('refresh', 'Cargando mensajes');
+  else if (waDet.error) cuerpo = vacio('alert', 'No se pudieron cargar los mensajes', esc(waDet.error));
+  else if (!waDet.mensajes.length) cuerpo = vacio('inbox', 'Sin mensajes recientes');
+  else cuerpo = burbujas(waDet.mensajes.map((m) => ({ tipo: m.deMi ? (m.bot ? 'bot' : 'tu') : 'cliente', texto: m.texto, t: m.t, autor: m.autor })));
+  const acciones = `${selectorModo(chatSel)}
+    ${sesion ? (sesion.pausadoHasta ? `<button class="btn sm" data-acc="reanudar">${I('play', 'sm')}Reanudar bot</button>` : `<button class="btn sm" data-acc="pausar" data-h="1">${I('pause', 'sm')}Pausar 1 h</button>`) : ''}
+    ${numero ? `<a class="btn sm fant" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener" title="Abrir en WhatsApp">${I('external', 'sm')}WhatsApp</a>` : ''}`;
+  det.innerHTML = cabeceraChat({ nombre, numero, id: chatSel, esGrupo: esGrupoId(chatSel), sesion, acciones }) + fichaHtml(sesion) + `<div class="msgs">${cuerpo}</div>` + formEnviar(p.borrador, !!sesion);
+  restaurarDetalle(det, p, !!waDet);
 }
 
 function renderLista() {
@@ -495,64 +749,62 @@ function renderLista() {
   const chats = estado.chats.filter((c) => !q || (c.nombre || '').toLowerCase().includes(q) || c.numero.includes(q));
   $('#listaChats').innerHTML = chats.length ? chats.map((c) => {
     const ult = c.historial[c.historial.length - 1];
+    const prev = ult ? sinEmoji(ult.texto.split('\n').find((x) => x.trim()) || '') : '';
     return `<li data-id="${esc(c.id)}" class="${c.id === chatSel ? 'sel' : ''}">
-      <span class="nom">${esc(c.nombre || '+' + c.numero)}</span><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span>
-      <span class="ult">${ult ? (ult.de === 'cliente' ? '' : ult.de === 'bot' ? '🤖 ' : 'Tú: ') + esc(ult.texto.split('\n')[0]) : ''}</span>
-      <span>${badgeChat(c)}</span></li>`;
-  }).join('') : `<div class="vacio">${q ? 'Sin resultados' : 'Aún no te ha escrito nadie que no sea tu contacto.'}</div>`;
+      ${avatar(c.nombre || c.numero, c.id, false)}
+      <div class="cuerpo"><div class="nom">${esc(nombreVisible(c.nombre, c.numero))}</div>
+        <div class="ult">${ult && ult.de !== 'cliente' ? `<span class="tenue">${ult.de === 'bot' ? 'Bot' : 'Tú'}: </span>` : ''}${esc(prev)}</div></div>
+      <div class="lado-der"><span class="hora">${c.ultimo ? hora(c.ultimo) : ''}</span>${c.pausadoHasta ? `<span class="tags" title="Bot en pausa">${I('pause')}</span>` : `<span class="tags t-bot">${I('bot')}</span>`}</div></li>`;
+  }).join('') : vacio('inbox', q ? 'Sin resultados' : 'Aún no hay conversaciones del bot', q ? '' : 'Cuando alguien que no es tu contacto escriba, aparecerá aquí.');
 }
 
 function renderDetalle() {
   if (modo === 'todos') return renderDetalleWa();
   const c = estado.chats.find((x) => x.id === chatSel);
   const det = $('#detalle');
-  if (!c) { det.innerHTML = '<div class="vacio">Selecciona una conversación</div>'; return; }
-  const taPrev = det.querySelector('textarea');
-  const borrador = taPrev?.value || '';
-  const teniaFoco = taPrev && document.activeElement === taPrev;
-  const msgs = det.querySelector('.msgs');
-  const pegadoAbajo = !msgs || forzarAbajo || msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40;
-  det.innerHTML = `
-    <div class="det-cab">
-      <div><div class="nom">${esc(c.nombre || '+' + c.numero)}</div><div class="cuenta">+${esc(c.numero)}</div></div>
-      ${badgeChat(c)}
-      <div class="acc">
-        ${selectorModo(c.id)}
-        ${c.pausadoHasta
-          ? `<button data-acc="reanudar">▶️ Reanudar bot</button>`
-          : `<button data-acc="pausar" data-h="1">⏸️ Pausar 1 h</button><button data-acc="pausar" data-h="24">⏸️ 24 h</button>`}
-        <a href="https://wa.me/${esc(c.numero)}" target="_blank" rel="noopener"><button>Abrir en WhatsApp</button></a>
-        <button class="peligro" data-acc="reiniciar" title="Borra el historial del panel; si vuelve a escribir, verá el menú">🗑️</button>
-      </div>
-    </div>
-    ${fichaHtml(c)}
-    <div class="msgs">${c.historial.map((m) => `<div class="b ${m.de}"><div class="quien">${m.de === 'cliente' ? esc(c.nombre || 'Cliente') : m.de === 'bot' ? '🤖 Respuesta del bot' : '🙋 Tú'}</div>${fmtWa(m.texto)}<small>${hora(m.t)}</small></div>`).join('')}</div>
-    <form class="enviar"><textarea placeholder="Escribe una respuesta… (el bot se pausará en este chat)" aria-label="Mensaje">${esc(borrador)}</textarea><button class="prim">Enviar</button></form>`;
-  const nm = det.querySelector('.msgs');
-  if (pegadoAbajo) nm.scrollTop = nm.scrollHeight;
-  forzarAbajo = false;
-  if (teniaFoco) { const ta = det.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (!c) { det.innerHTML = vacio('chat', 'Selecciona una conversación', 'Aquí verás lo que habló el bot con cada cliente.'); return; }
+  const p = preservarDetalle(det);
+  const acciones = `${selectorModo(c.id)}
+    ${c.pausadoHasta ? `<button class="btn sm" data-acc="reanudar">${I('play', 'sm')}Reanudar bot</button>` : `<button class="btn sm" data-acc="pausar" data-h="1">${I('pause', 'sm')}1 h</button><button class="btn sm" data-acc="pausar" data-h="24">${I('pause', 'sm')}24 h</button>`}
+    <a class="btn sm fant" href="https://wa.me/${esc(c.numero)}" target="_blank" rel="noopener">${I('external', 'sm')}WhatsApp</a>
+    <button class="btn sm peligro ico" data-acc="reiniciar" title="Borrar la conversación del panel">${I('trash', 'sm')}</button>`;
+  det.innerHTML = cabeceraChat({ nombre: c.nombre, numero: c.numero, id: c.id, esGrupo: false, sesion: c, acciones }) + fichaHtml(c)
+    + `<div class="msgs">${burbujas(c.historial.map((m) => ({ tipo: m.de, texto: m.texto, t: m.t })))}</div>` + formEnviar(p.borrador, true);
+  restaurarDetalle(det, p);
 }
 
+// ---------- Registro ----------
+const NIVELES = [
+  [/^(✅|🔐|▶️|👍|🎉|📦|🖥️|🚀|🧠|🔑|⚙️|📂|🛠️)/u, 'ok', 'OK'], [/^❌/u, 'err', 'ERROR'], [/^(⚠️|⌛|🛡️)/u, 'warn', 'AVISO'],
+  [/^🤖/u, 'ia', 'IA'], [/^⚡/u, 'rapida', 'SIN IA'], [/^(🔔|🎁|✋|⏸️|🙅|🎤|📇)/u, 'atencion', 'ATENCIÓN'], [/^🧪/u, 'prueba', 'PRUEBA'], [/^💬/u, 'info', 'MENÚ'],
+];
+function nivelDe(texto) { for (const [rx, cls, et] of NIVELES) if (rx.test(texto)) return [cls, et]; return ['info', 'INFO']; }
 function renderLogs() {
   const el = $('#logs');
   const abajo = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-  el.innerHTML = estado.logs.map((l) => `<div><time>${new Date(l.t).toLocaleTimeString('es')}</time>${esc(l.texto)}</div>`).join('');
+  const filas = estado.logs.map((l) => { const [cls, et] = nivelDe(l.texto); return { l, cls, et }; }).filter((f) => !filtroLog || f.cls === filtroLog);
+  el.innerHTML = filas.length ? filas.map(({ l, cls, et }) => `<div><time>${new Date(l.t).toLocaleTimeString('es')}</time><span class="nivel n-${cls}">${et}</span><span>${esc(sinEmoji(l.texto))}</span></div>`).join('') : vacio('terminal', 'Sin registros en este filtro');
   if (abajo) el.scrollTop = el.scrollHeight;
 }
+$('#logsFiltro').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button'); if (!b) return;
+  filtroLog = b.dataset.nivel;
+  document.querySelectorAll('#logsFiltro button').forEach((x) => x.classList.toggle('prim', x === b));
+  renderLogs(); $('#logs').scrollTop = 1e9;
+});
 
 // ---------- Catálogo ----------
 function renderCatalogo() {
   $('#servicios').innerHTML = catalogo.map((s, i) => `
-    <div class="serv" data-i="${i}">
-      <div><label>Nombre</label><input data-k="nombre" value="${esc(s.nombre)}"></div>
-      <div><label>Descripción</label><textarea data-k="descripcion" rows="3">${esc(s.descripcion)}</textarea></div>
+    <div class="tarjeta serv" data-i="${i}">
+      <div class="serv-cab"><span class="num">${i + 1}</span><input data-k="nombre" value="${esc(s.nombre)}" placeholder="Nombre del servicio" aria-label="Nombre"><button class="btn ico peligro" data-quitar="${i}" title="Quitar servicio" aria-label="Quitar servicio">${I('trash', 'sm')}</button></div>
+      <div><label>Descripción</label><textarea data-k="descripcion" rows="2">${esc(s.descripcion)}</textarea></div>
       <div class="fila">
         <div><label>Precio desde</label><input data-k="precioDesde" type="number" min="0" value="${esc(s.precioDesde)}"></div>
-        <div><label>Tiempo</label><input data-k="tiempo" value="${esc(s.tiempo)}"></div>
+        <div><label>Tiempo</label><input data-k="tiempo" value="${esc(s.tiempo)}" placeholder="Ej.: 5 a 10 días"></div>
       </div>
-      <div><label>Incluye (uno por línea)</label><textarea data-k="incluye" rows="4">${esc((s.incluye || []).join('\n'))}</textarea></div>
-      <div class="fila"><label class="chk"><input type="checkbox" data-k="adicional" ${s.adicional ? 'checked' : ''}> Servicio adicional (lista corta)</label><div style="text-align:right"><button class="peligro" data-quitar="${i}">Quitar</button></div></div>
+      <div><label>Incluye (uno por línea)</label><textarea data-k="incluye" rows="3">${esc((s.incluye || []).join('\n'))}</textarea></div>
+      <label class="chk"><input type="checkbox" data-k="adicional" ${s.adicional ? 'checked' : ''}> Servicio adicional (va en la lista corta)</label>
     </div>`).join('');
 }
 function leerCatalogoForm() {
@@ -564,7 +816,7 @@ function leerCatalogoForm() {
 }
 async function cargarCatalogo() { catalogo = await api('/api/catalogo'); renderCatalogo(); $('#prevCat').src = '/catalogo.png?t=' + Date.now(); }
 
-// ---------- Config ----------
+// ---------- Configuración ----------
 async function cargarConfig() {
   const c = await api('/api/config');
   for (const el of $('#formConfig').elements) {
@@ -575,11 +827,13 @@ async function cargarConfig() {
   }
 }
 
-// ---------- Eventos UI ----------
+// ---------- Eventos ----------
 document.querySelector('.tabs').addEventListener('click', (ev) => {
-  const b = ev.target.closest('button'); if (!b) return;
+  const b = ev.target.closest('button[data-tab]'); if (!b) return;
   document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === b.dataset.tab));
+  $('#tituloPagina').textContent = b.dataset.titulo; $('#subPagina').textContent = b.dataset.sub;
+  $('.stats').style.display = ['tChats', 'tClientes', 'tAnalisis'].includes(b.dataset.tab) ? '' : 'none';
   if (b.dataset.tab === 'tLogs') $('#logs').scrollTop = 1e9;
   if (b.dataset.tab === 'tRespuestas') cargarVistaPrevia();
 });
@@ -607,7 +861,7 @@ $('#detalle').addEventListener('change', (ev) => {
 $('#detalle').addEventListener('click', (ev) => {
   const b = ev.target.closest('button[data-acc]'); if (!b) return;
   const a = b.dataset.acc, url = `/api/chats/${encodeURIComponent(chatSel)}/${a}`;
-  if (a === 'reiniciar' && !confirm('¿Borrar esta conversación del panel? Si la persona vuelve a escribir, el bot le mostrará el menú.')) return;
+  if (a === 'reiniciar' && !confirm('¿Borrar esta conversación del panel? Si la persona vuelve a escribir, empezará de cero.')) return;
   accion(() => api(url, 'POST', { horas: +b.dataset.h }).then(() => { if (a === 'reiniciar') chatSel = null; }),
     { pausar: 'Bot pausado en este chat', reanudar: 'El bot volverá a responder aquí', reiniciar: 'Conversación borrada' }[a]);
 });
@@ -624,13 +878,13 @@ $('#agregarServ').addEventListener('click', () => {
   document.querySelector('.serv:last-child input').focus();
 });
 $('#servicios').addEventListener('click', (ev) => {
-  const i = ev.target.dataset.quitar; if (i === undefined) return;
-  catalogo = leerCatalogoForm(); catalogo.splice(+i, 1); renderCatalogo();
+  const b = ev.target.closest('[data-quitar]'); if (!b) return;
+  catalogo = leerCatalogoForm(); catalogo.splice(+b.dataset.quitar, 1); renderCatalogo();
 });
 $('#guardarCat').addEventListener('click', (ev) => {
-  const b = ev.target; b.disabled = true; b.textContent = 'Generando…';
+  const b = ev.currentTarget, t = b.querySelector('span'); b.disabled = true; t.textContent = 'Generando…';
   accion(async () => { await api('/api/catalogo', 'PUT', leerCatalogoForm()); await cargarCatalogo(); cargarVistaPrevia(); }, 'Catálogo guardado y regenerado')
-    .finally(() => { b.disabled = false; b.textContent = '💾 Guardar y regenerar catálogo'; });
+    .finally(() => { b.disabled = false; t.textContent = 'Guardar y regenerar catálogo'; });
 });
 $('#formConfig').addEventListener('submit', (ev) => {
   ev.preventDefault();
@@ -653,8 +907,8 @@ async function refrescar() {
     const antes = estado?.conexion;
     estado = await api('/api/estado');
     render();
-    if (estado.conexion !== antes && modo === 'todos') cargarChatsWa(); // al conectar, cargar los chats
-  } catch { $('#conexion').textContent = 'Panel sin conexión'; $('#conexion').className = 'pill p-rojo'; }
+    if (estado.conexion !== antes && modo === 'todos') cargarChatsWa();
+  } catch { $('#conexion').innerHTML = '<span class="punto"></span>Panel sin conexión'; $('#conexion').className = 'pill p-rojo'; }
 }
 const fuente = new EventSource('/api/eventos');
 fuente.onmessage = refrescar;
@@ -664,60 +918,63 @@ fuente.addEventListener('wa', (ev) => {
   let id = ''; try { id = JSON.parse(ev.data); } catch {}
   if (chatSel && id === chatSel) cargarMensajesWa(chatSel);
 });
-setInterval(() => estado && render(), 30000); // actualizar "hace X min"
-// ---------- Ultron: API key y simulador ----------
+setInterval(() => estado && render(), 30000);
+
+// ---------- IA: claves y simulador ----------
 async function estadoUltron() {
   try {
     const e = await api('/api/ultron/estado');
-    const nombreMotor = e.proveedor === 'local' ? `IA local gratis · ${e.modeloLocal}` : e.proveedor === 'huggingface' ? `Hugging Face · ${e.modeloHF.split('/').pop()}` : e.proveedor === 'claude' ? `Claude · ${e.modeloClaude}` : 'menú clásico';
-    $('#iaPill').textContent = !e.proveedor ? 'Menú clásico' : e.disponible ? `IA: ${{ local: 'local gratis', huggingface: 'Hugging Face', claude: 'Claude' }[e.proveedor]}` : 'IA sin configurar';
-    $('#iaPill').className = 'pill ' + (e.disponible ? 'p-verde' : 'p-ambar');
-    $('#okHF').textContent = e.huggingface ? '✅ guardado' : '';
-    $('#okClaude').textContent = e.claude ? '✅ guardada' : '';
-    $('#claveEstado').innerHTML = !e.proveedor ? 'El bot está en <b>menú clásico</b> (sin IA). Cámbialo abajo en "Cómo responde el bot".'
-      : e.disponible ? `✅ Ultron responde con <b>${esc(nombreMotor)}</b>.`
-      : e.proveedor === 'local' ? `⚠️ Falta el modelo local (<b>modelos/${esc(e.modeloLocal)}</b>): mientras tanto el bot responde con el menú clásico.`
-      : `⚠️ El motor elegido es <b>${esc(nombreMotor)}</b> pero falta su ${e.proveedor === 'huggingface' ? 'token' : 'API key'}: mientras tanto el bot responde con el menú clásico.`;
+    const nombreMotor = e.proveedor === 'local' ? `IA local gratis · ${e.modeloLocal}` : e.proveedor === 'huggingface' ? `Hugging Face · ${e.modeloHF.split('/').pop()}` : e.proveedor === 'claude' ? `Claude · ${e.modeloClaude}` : 'respuestas fijas y menú';
+    $('#iaPill').innerHTML = I('spark', 'sm') + (!e.proveedor ? 'Sin IA' : e.disponible ? `IA: ${{ local: 'local', huggingface: 'Hugging Face', claude: 'Claude' }[e.proveedor]}` : 'IA sin configurar');
+    $('#iaPill').className = 'pill ' + (e.disponible ? 'p-violeta' : 'p-ambar');
+    $('#okHF').innerHTML = e.huggingface ? `<span class="ok-txt">${I('check', 'sm')}guardado</span>` : '';
+    $('#okClaude').innerHTML = e.claude ? `<span class="ok-txt">${I('check', 'sm')}guardada</span>` : '';
+    const ok = e.disponible || !e.proveedor;
+    $('#claveEstado').className = 'full estado-ia ' + (e.disponible ? 'ok' : 'warn');
+    $('#claveEstado').innerHTML = I(ok && e.disponible ? 'check-circ' : 'alert', 'lg') + '<span>' + (!e.proveedor ? 'El bot usa solo <b>respuestas fijas y el menú</b>, sin IA. Cámbialo abajo en "Cómo responde el bot".'
+      : e.disponible ? `Ultron responde con <b>${esc(nombreMotor)}</b>. Las preguntas frecuentes se responden sin IA.`
+      : e.proveedor === 'local' ? `Falta el modelo local (<b>modelos/${esc(e.modeloLocal)}</b>). Mientras tanto, lo que no tenga respuesta fija lo atiende el menú.`
+      : `El motor elegido es <b>${esc(nombreMotor)}</b>, pero falta su ${e.proveedor === 'huggingface' ? 'token' : 'API key'}. Mientras tanto responde el menú.`) + '</span>';
   } catch {}
 }
 $('#formClave').addEventListener('submit', (ev) => {
   ev.preventDefault();
   const campos = [...ev.target.querySelectorAll('input[data-proveedor]')].filter((c) => c.value.trim());
   if (!campos.length) return;
-  const b = ev.target.querySelector('button.prim'); b.disabled = true; b.textContent = 'Verificando…';
+  const b = ev.target.querySelector('button.prim'), t = b.querySelector('span'); b.disabled = true; t.textContent = 'Verificando…';
   accion(async () => {
     for (const c of campos) { await api('/api/ultron/clave', 'POST', { clave: c.value.trim(), proveedor: c.dataset.proveedor }); c.value = ''; }
     await estadoUltron();
-  }, 'Verificado y guardado').finally(() => { b.disabled = false; b.textContent = '🔑 Guardar y verificar'; });
+  }, 'Verificado y guardado').finally(() => { b.disabled = false; t.textContent = 'Guardar y verificar'; });
 });
 $('#formClave').addEventListener('click', (ev) => {
   const p = ev.target.dataset.borrar; if (!p) return;
-  if (confirm('¿Quitar esta clave? Si es la del motor activo, el bot responderá con el menú clásico.')) accion(async () => { await api('/api/ultron/clave', 'POST', { clave: '', proveedor: p }); await estadoUltron(); }, 'Clave eliminada');
+  if (confirm('¿Quitar esta clave? Si es la del motor activo, lo que no tenga respuesta fija lo atenderá el menú.')) accion(async () => { await api('/api/ultron/clave', 'POST', { clave: '', proveedor: p }); await estadoUltron(); }, 'Clave eliminada');
 });
 
-// ---------- Análisis de datos ----------
+// ---------- Análisis ----------
 const nf = new Intl.NumberFormat('es-CO');
 function barrasH(datos, total) {
-  if (!datos.length) return '<div class="vacio" style="padding:20px">Aún no hay datos</div>';
+  if (!datos.length) return vacio('chart', 'Aún no hay datos');
   const max = Math.max(1, ...datos.map((d) => d.v));
   return datos.map((d) => {
     const pct = (d.v / max) * 100;
     const extra = total ? ` · ${Math.round((d.v / Math.max(1, total)) * 100)}%` : '';
     return `<div class="hbar" title="${esc(d.l)}: ${nf.format(d.v)}${extra}"><span class="et">${esc(d.l)}</span>
-      <span class="pista"><div class="barra" style="width:${pct}%"></div><span class="val" style="${pct > 70 ? `right:${100 - pct}%;padding:0 6px 0 0;color:#00131c;font-weight:600` : `left:${pct}%`}">${nf.format(d.v)}${extra}</span></span></div>`;
+      <span class="pista"><div class="barra" style="width:${pct}%"></div><span class="val" style="${pct > 70 ? `right:${100 - pct}%;padding:0 8px 0 0;color:#00121b;font-weight:600` : `left:${pct}%`}">${nf.format(d.v)}${extra}</span></span></div>`;
   }).join('');
 }
 function barrasV(datos, cadaEtiqueta = 1) {
   const W = 760, H = 180, abajo = 18, arriba = 14, n = datos.length;
   const max = Math.max(1, ...datos.map((d) => d.v));
-  const ancho = W / n, gap = Math.min(4, ancho * 0.25);
+  const ancho = W / n, gap = Math.min(5, ancho * 0.3);
   const y = (v) => H - abajo - (v / max) * (H - abajo - arriba);
   const barras = datos.map((d, i) => {
     const x = i * ancho + gap / 2, w = Math.max(1, ancho - gap), top = y(d.v), h = H - abajo - top;
     const r = Math.min(4, w / 2, h);
     const forma = h > 0 ? `M${x},${H - abajo} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${H - abajo} Z` : '';
     return `<g><title>${esc(d.t || d.l)}: ${nf.format(d.v)} mensajes</title>
-      <rect x="${i * ancho}" y="0" width="${ancho}" height="${H}" fill="transparent"/>${forma ? `<path class="b" d="${forma}" fill="var(--marca)"/>` : ''}
+      <rect x="${i * ancho}" y="0" width="${ancho}" height="${H}" fill="transparent"/>${forma ? `<path class="b" d="${forma}"/>` : ''}
       ${i % cadaEtiqueta === 0 ? `<text x="${x + w / 2}" y="${H - 4}" text-anchor="middle">${esc(d.l)}</text>` : ''}</g>`;
   }).join('');
   return `<div class="vbar"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Gráfico de barras">
@@ -733,27 +990,29 @@ function renderAnalisis() {
   const chats = estado.chats.filter((c) => !String(c.nombre || '').includes('prueba'));
   const ventas = chats.filter((c) => c.demo?.estado === 'contrato').length || suma('ventas');
   const nuevos = suma('nuevos');
+  const sinIA = suma('sinIA'), conIAn = suma('conIA');
   const kpis = [
-    ['Mensajes recibidos', suma('mensajes')],
-    ['Personas nuevas', nuevos],
-    ['Quieren contratar', suma('contratar')],
-    ['Cotizaciones', suma('cotizaciones')],
-    ['Demos solicitadas', suma('demos')],
-    ['Ventas cerradas', ventas],
-    ['Conversión', nuevos ? `${Math.round((ventas / nuevos) * 100)}%` : '—'],
+    ['chat', 'Mensajes recibidos', suma('mensajes')],
+    ['user-plus', 'Personas nuevas', nuevos],
+    ['target', 'Quieren contratar', suma('contratar')],
+    ['flag', 'Cotizaciones', suma('cotizaciones')],
+    ['gift', 'Demos solicitadas', suma('demos')],
+    ['dollar', 'Ventas cerradas', ventas],
+    ['percent', 'Conversión', nuevos ? `${Math.round((ventas / nuevos) * 100)}%` : '—'],
+    ['spark', 'Respuestas sin IA', sinIA + conIAn ? `${Math.round((sinIA / (sinIA + conIAn)) * 100)}%` : '—'],
   ];
-  $('#kpis').innerHTML = kpis.map(([l, n]) => `<div class="kpi"><div class="n">${typeof n === 'number' ? nf.format(n) : n}</div><div class="l">${l}</div></div>`).join('');
+  $('#kpis').innerHTML = kpis.map(([ico, l, n]) => `<div class="tarjeta kpi"><div class="l">${I(ico, 'sm')}${l}</div><div class="n">${typeof n === 'number' ? nf.format(n) : n}</div></div>`).join('');
 
-  const conIA = chats.filter((c) => c.estado === 'ultron' || c.ficha || c.demo || c.historial.some((h) => h.de === 'bot'));
+  const conversaron = chats.filter((c) => c.estado === 'ultron' || c.ficha || c.demo || c.historial.some((h) => h.de === 'bot'));
   const embudo = [
-    { l: 'Conversaron con el bot', v: conIA.length },
+    { l: 'Conversaron con el bot', v: conversaron.length },
     { l: 'Dieron datos', v: chats.filter((c) => c.ficha && Object.keys(c.ficha).length).length },
     { l: 'Pidieron demo', v: chats.filter((c) => c.demo).length },
     { l: 'Demo entregada', v: chats.filter((c) => ['entregada', 'vencida', 'contrato'].includes(c.demo?.estado)).length },
     { l: 'Quieren contratar', v: chats.filter((c) => ['cotizacion_enviada', 'humano'].includes(c.estado) || c.demo?.estado === 'contrato').length },
     { l: 'Contrataron', v: chats.filter((c) => c.demo?.estado === 'contrato').length },
   ];
-  $('#gEmbudo').innerHTML = barrasH(embudo, conIA.length);
+  $('#gEmbudo').innerHTML = barrasH(embudo, conversaron.length);
 
   const cuenta = {};
   for (const c of chats) {
@@ -763,72 +1022,74 @@ function renderAnalisis() {
     cuenta[k] = (cuenta[k] || 0) + 1;
   }
   $('#gServicios').innerHTML = barrasH(Object.entries(cuenta).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([l, v]) => ({ l, v })));
-
   $('#gDias').innerHTML = barrasV(dias.map((d) => ({ l: d.slice(8), t: new Date(d + 'T12:00').toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'short' }), v: st[d]?.mensajes || 0 })), 3);
-
   const horas = Array(24).fill(0);
   for (const c of chats) for (const h of c.historial) if (h.de === 'cliente') horas[new Date(h.t).getHours()]++;
   $('#gHoras').innerHTML = barrasV(horas.map((v, h) => ({ l: `${h}h`, t: `${h}:00 a ${h}:59`, v })), 2);
 }
 
 // ---------- Clientes y demos ----------
-const DEMO = { solicitada: ['🛠️ Por preparar', 'p-ambar'], entregada: ['📦 Entregada', 'p-azul'], vencida: ['⌛ Vencida', 'p-rojo'], contrato: ['🎉 Contrató', 'p-verde'], cancelada: ['✖️ Cancelada', 'p-gris'] };
+const DEMO = { solicitada: ['Por preparar', 'p-ambar', 'clock'], entregada: ['Entregada', 'p-azul', 'gift'], vencida: ['Vencida', 'p-rojo', 'alert'], contrato: ['Contrató', 'p-verde', 'check-circ'], cancelada: ['Cancelada', 'p-gris', 'x'] };
 function demoPill(d) {
-  if (!d) return '<span class="cuenta">—</span>';
-  const [t, cls] = DEMO[d.estado] || [d.estado, 'p-gris'];
+  if (!d) return '<span class="tenue">—</span>';
+  const [t, cls, ico] = DEMO[d.estado] || [d.estado, 'p-gris', 'gift'];
   const extra = d.estado === 'entregada' && d.vence ? ` · vence ${new Date(d.vence).toLocaleDateString('es', { day: '2-digit', month: 'short' })}` : '';
-  return `<span class="pill ${cls}">${t}${extra}</span>`;
+  return `<span class="pill ${cls}">${I(ico, 'sm')}${t}${extra}</span>`;
 }
 function botonesDemo(c) {
   const d = c.demo; if (!d) return '';
   const id = esc(c.id), b = [];
-  if (d.estado === 'solicitada') b.push(`<button data-demo="entregada" data-id="${id}">Marcar entregada</button>`);
-  if (['solicitada', 'entregada', 'vencida'].includes(d.estado)) b.push(`<button class="prim" data-demo="contrato" data-id="${id}">Contrató</button>`, `<button class="peligro" data-demo="cancelar" data-id="${id}">Cancelar</button>`);
+  if (d.estado === 'solicitada') b.push(`<button class="btn sm" data-demo="entregada" data-id="${id}">${I('gift', 'sm')}Marcar entregada</button>`);
+  if (['solicitada', 'entregada', 'vencida'].includes(d.estado)) b.push(`<button class="btn sm prim" data-demo="contrato" data-id="${id}">${I('check', 'sm')}Contrató</button>`, `<button class="btn sm peligro" data-demo="cancelar" data-id="${id}">Cancelar</button>`);
   return b.join('');
 }
 function fichaHtml(c) {
   if (!c) return '';
   const f = c.ficha || {};
   const etiquetas = { nombre: 'Nombre', negocio: 'Negocio', servicio: 'Servicio', necesidad: 'Necesita', presupuesto: 'Presupuesto', fecha: 'Fecha', email: 'Email' };
-  const datos = Object.entries(etiquetas).filter(([k]) => f[k]).map(([k, t]) => `<span><b>${t}:</b> ${esc(f[k])}</span>`);
-  if (c.demo) datos.push(`<span><b>Demo:</b> ${demoPill(c.demo)} ${esc(c.demo.servicio || '')}</span>`, botonesDemo(c));
-  if (c.seguimientoAutorizado) datos.push('<span class="pill p-azul">👍 Autorizó seguimiento</span>');
-  if (c.noSeguir) datos.push('<span class="pill p-gris">🙅 No contactar</span>');
-  return datos.length ? `<div class="ficha">📋 ${datos.join('')}</div>` : '';
+  const datos = Object.entries(etiquetas).filter(([k]) => f[k]).map(([k, t]) => `<span><b>${t}</b> ${esc(f[k])}</span>`);
+  if (c.demo) datos.push(`<span><b>Demo</b> ${demoPill(c.demo)} ${esc(c.demo.servicio || '')}</span>`, botonesDemo(c));
+  if (c.seguimientoAutorizado) datos.push(`<span class="pill p-verde">${I('check', 'sm')}Autorizó seguimiento</span>`);
+  if (c.noSeguir) datos.push(`<span class="pill p-gris">${I('ban', 'sm')}No contactar</span>`);
+  return datos.length ? `<div class="ficha"><span class="tit">${I('clip', 'sm')}Ficha</span>${datos.join('')}</div>` : '';
 }
 function renderClientes() {
   const filas = estado.chats.filter((c) => c.ficha || c.demo || c.estado === 'ultron' || c.seguimientoAutorizado);
   $('#tablaClientes').innerHTML = filas.length ? `
-    <tr><th>Cliente</th><th>Servicio / necesidad</th><th>Presupuesto</th><th>Demo</th><th>Seguimiento</th><th>Último contacto</th><th></th></tr>
+    <thead><tr><th>Cliente</th><th>Servicio / necesidad</th><th>Presupuesto</th><th>Demo</th><th>Seguimiento</th><th>Último contacto</th><th></th></tr></thead><tbody>
     ${filas.map((c) => `<tr>
-      <td><b>${esc(c.ficha?.nombre || c.nombre || '+' + c.numero)}</b><div class="cuenta">+${esc(c.numero)}${c.ficha?.negocio ? ' · ' + esc(c.ficha.negocio) : ''}${c.ficha?.email ? '<br>' + esc(c.ficha.email) : ''}</div></td>
-      <td>${esc(c.ficha?.servicio || c.demo?.servicio || '—')}<div class="cuenta">${esc(c.ficha?.necesidad || c.demo?.detalles || '')}</div></td>
-      <td>${esc(c.ficha?.presupuesto || '—')}${c.ficha?.fecha ? `<div class="cuenta">Para: ${esc(c.ficha.fecha)}</div>` : ''}</td>
+      <td><div class="cliente-cel">${avatar(c.ficha?.nombre || c.nombre || c.numero, c.id, false)}<div><b>${esc(sinEmoji(c.ficha?.nombre || c.nombre) || '+' + c.numero)}</b><div class="tenue">+${esc(c.numero)}${c.ficha?.negocio ? ' · ' + esc(c.ficha.negocio) : ''}${c.ficha?.email ? '<br>' + esc(c.ficha.email) : ''}</div></div></div></td>
+      <td>${esc(c.ficha?.servicio || c.demo?.servicio || '—')}<div class="tenue">${esc(c.ficha?.necesidad || c.demo?.detalles || '')}</div></td>
+      <td>${esc(c.ficha?.presupuesto || '—')}${c.ficha?.fecha ? `<div class="tenue">Para: ${esc(c.ficha.fecha)}</div>` : ''}</td>
       <td>${demoPill(c.demo)}</td>
-      <td>${c.noSeguir ? '🙅 No contactar' : c.seguimientoAutorizado ? `👍 Autorizado (${c.seguimientos} enviados)` : '—'}</td>
-      <td>${c.ultimo ? hora(c.ultimo) : ''}</td>
+      <td>${c.noSeguir ? `<span class="pill p-gris">${I('ban', 'sm')}No contactar</span>` : c.seguimientoAutorizado ? `<span class="pill p-verde">${I('check', 'sm')}Autorizado · ${c.seguimientos} enviados</span>` : '<span class="tenue">—</span>'}</td>
+      <td class="suave">${c.ultimo ? horaCompleta(c.ultimo) : ''}</td>
       <td><div class="acc">${botonesDemo(c)}</div></td>
-    </tr>`).join('')}` : '<tr><td class="vacio">Todavía no hay clientes atendidos por Ultron.</td></tr>';
+    </tr>`).join('')}</tbody>` : `<tbody><tr><td>${vacio('users', 'Todavía no hay clientes', 'Aparecerán aquí cuando Ultron converse con alguien.')}</td></tr></tbody>`;
 }
 document.addEventListener('click', (ev) => {
   const b = ev.target.closest('button[data-demo]'); if (!b) return;
-  const textos = { entregada: 'Demo entregada: empieza el conteo', contrato: '¡Venta registrada! 🎉', cancelar: 'Demo cancelada' };
+  const textos = { entregada: 'Demo entregada: empieza el conteo', contrato: 'Venta registrada', cancelar: 'Demo cancelada' };
   if (b.dataset.demo === 'cancelar' && !confirm('¿Cancelar esta demo?')) return;
   accion(() => api(`/api/chats/${encodeURIComponent(b.dataset.id)}/demo`, 'POST', { accion: b.dataset.demo }), textos[b.dataset.demo]);
 });
 
+// ---------- Simulador ----------
 let simHist = [], simCtx = {};
+const efecto = (ico, txt) => `<div class="efecto">${I(ico, 'sm')}<span>${txt}</span></div>`;
 function renderSim(extra = '') {
   const el = $('#simMsgs');
   el.innerHTML = (simHist.length ? simHist.map((m) => m.role === 'user'
-    ? `<div class="b cliente"><div class="quien">Cliente (tú)</div>${fmtWa(m.content)}</div>`
-    : m.salida.map((x) => `<div class="b bot"><div class="quien">🤖 Ultron</div>${x.tipo === 'texto' ? fmtWa(x.texto) : '📎 Envía el catálogo (imagen + PDF)'}</div>`).join('')
-      + (m.asesor ? `<div class="cuenta">🔔 Aquí te avisaría: ${esc(m.asesor.motivo)} — ${esc(m.asesor.resumen)}</div>` : '')
-      + (m.noContactar ? '<div class="cuenta">🙅 Marcado como "no contactar": sin seguimientos.</div>' : '')
-      + (m.demo ? `<div class="cuenta">🎁 Aquí te avisaría para preparar la demo: ${esc(m.demo.servicio)} — ${esc(m.demo.negocio)} — ${esc(m.demo.detalles)}</div>` : '')
-      + (m.seguimientoAutorizado ? '<div class="cuenta">👍 El cliente autorizó seguimiento.</div>' : '')
-      + (m.ficha && Object.keys(m.ficha).length ? `<div class="cuenta">📋 Guardó: ${esc(Object.entries(m.ficha).map(([k, v]) => k + ': ' + v).join(' · '))}</div>` : '')
-  ).join('') : '<div class="vacio">Escribe "Hola" para empezar.</div>') + extra;
+    ? `<div class="b cliente">${fmtWa(m.content)}</div>`
+    : m.salida.map((x) => `<div class="b bot"><div class="quien">${I(m.sinIA ? 'check-circ' : 'spark', 'sm')}${m.sinIA ? 'Respuesta fija · sin IA' : 'Ultron · IA'}</div>${x.tipo === 'texto' ? fmtWa(x.texto) : `<span class="suave">${I('attach', 'sm')} Envía el catálogo (imagen y PDF)</span>`}</div>`).join('')
+      + (m.corregida ? efecto('alert', `La respuesta de la IA se corrigió: ${esc(m.corregida)}.`) : '')
+      + (m.asesor ? efecto('bell', `Aquí te avisaría: ${esc(m.asesor.motivo)} — ${esc(m.asesor.resumen)}`) : '')
+      + (m.noContactar ? efecto('ban', 'Marcado como "no contactar": sin seguimientos.') : '')
+      + (m.pedirDatosDemo ? efecto('gift', 'Le pide los datos del negocio para preparar la demo.') : '')
+      + (m.demo ? efecto('gift', `Aquí te avisaría para preparar la demo: ${esc(m.demo.servicio)} — ${esc(m.demo.negocio)}`) : '')
+      + (m.seguimientoAutorizado ? efecto('check', 'El cliente autorizó seguimiento.') : '')
+      + (m.ficha && Object.keys(m.ficha).length ? efecto('clip', `Guardó: ${esc(Object.entries(m.ficha).map(([k, v]) => k + ': ' + v).join(' · '))}`) : '')
+  ).join('') : vacio('bot', 'Escribe "Hola" para empezar', 'Prueba como responde Ultron sin enviar nada por WhatsApp.')) + extra;
   el.scrollTop = el.scrollHeight;
 }
 $('#simForm').addEventListener('submit', (ev) => {
@@ -836,7 +1097,7 @@ $('#simForm').addEventListener('submit', (ev) => {
   const ta = ev.target.querySelector('textarea'), texto = ta.value.trim(); if (!texto) return;
   const historial = simHist.flatMap((m) => m.role === 'user' ? [{ role: 'user', content: m.content }] : [{ role: 'assistant', content: m.respuestaTexto }]);
   simHist.push({ role: 'user', content: texto }); ta.value = '';
-  renderSim('<div class="cuenta">Ultron está escribiendo…</div>');
+  renderSim(`<div class="nota-sis">${I('refresh', 'sm')}Ultron está escribiendo</div>`);
   api('/api/ultron/probar', 'POST', { historial, texto, contexto: simCtx })
     .then((r) => {
       simHist.push({ role: 'assistant', ...r });
@@ -845,12 +1106,12 @@ $('#simForm').addEventListener('submit', (ev) => {
       if (r.seguimientoAutorizado) simCtx.seguimientoAutorizado = true;
       renderSim();
     })
-    .catch((e) => { simHist.pop(); renderSim(); toast('❌ ' + e.message, true); ta.value = texto; });
+    .catch((e) => { simHist.pop(); renderSim(); toast(e.message, true); ta.value = texto; });
 });
 $('#simForm').addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); ev.currentTarget.requestSubmit(); } });
 $('#simReset').addEventListener('click', () => { simHist = []; simCtx = {}; renderSim(); });
 
-refrescar(); cargarCatalogo(); cargarConfig(); estadoUltron();
+renderSim(); refrescar(); cargarCatalogo(); cargarConfig(); estadoUltron();
 </script>
 </body>
 </html>

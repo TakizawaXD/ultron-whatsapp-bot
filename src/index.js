@@ -321,7 +321,7 @@ function esParaMenu(texto, s, conversacionNueva) {
   if (/^\d{1,2}[.)]?$/.test(t)) return s?.estado !== 'ultron' || conversacionNueva;
   if (['menu', 'inicio', '0', 'opciones'].includes(t)) return true;
   if (['cotizacion', 'demo'].includes(s?.estado)) return true;      // está llenando la cotización o la demo
-  const saludo = /^(hola+|holi|buenas?|buen(os)? dias?|buenas (tardes|noches)|hey|hi|ola|saludos|que tal)( [a-z]+)?[!.¡ ]*$/.test(t);
+  const saludo = /^[¡¿ ]*(hola+|holi|buenas?|buen(os)? dias?|buenas (tardes|noches)|hey|hi|ola|saludos|que tal)( [a-z]+)?[!.¡?¿ ]*$/.test(t);
   return saludo && (conversacionNueva || !s?.estado || s.estado === 'menu');
 }
 
@@ -381,9 +381,18 @@ async function procesarColaIA(chatId) {
   }
 }
 
+// ¿Se puede responder en este chat AHORA? (el dueño pudo escribir o apagar el bot mientras el mensaje esperaba en cola)
+function puedeResponder(chatId, prueba) {
+  const s = E.sesiones[chatId];
+  if (!s) return false;
+  if (prueba) return true;
+  return E.control.activo && !(s.pausadoHasta > Date.now()) && E.control.modoChat[chatId] !== 'nunca';
+}
+
 async function responderConUltron(chatId, texto, ctx) {
   const s = E.sesiones[chatId];
   const { chat, prueba, numero } = ctx;
+  if (!puedeResponder(chatId, prueba)) { E.log(`⏸️  ${s?.nombre || numero}: respuesta cancelada (chat en pausa o bot apagado)`); return; }
   await chat.sendStateTyping().catch(() => {});
   // WhatsApp borra el "escribiendo…" a los ~25 s; la IA local puede tardar más, así que se renueva
   const escribiendo = setInterval(() => chat.sendStateTyping().catch(() => {}), 15_000);
@@ -397,6 +406,9 @@ async function responderConUltron(chatId, texto, ctx) {
     return responderConMenu(chatId, texto, s.estado && s.estado !== 'ultron' ? s : { estado: 'menu' }, ctx);
   }
   clearInterval(escribiendo);
+  // La IA puede tardar: si mientras tanto respondiste tú o apagaste el bot, no se envía nada
+  if (!puedeResponder(chatId, prueba)) { E.log(`⏸️  ${s.nombre || numero}: respuesta descartada (respondiste tú o el bot se apagó)`); return; }
+  if (r.corregida) E.log(`🛡️  Respuesta de la IA corregida (${r.corregida}) para ${s.nombre || numero}`);
   E.log(`${r.sinIA ? '⚡ Sin IA' : '🤖 Ultron'} → ${s.nombre || numero}: "${r.respuestaTexto.replace(/\s+/g, ' ').slice(0, 70)}"`);
   if (!prueba) E.contar(r.sinIA ? 'sinIA' : 'conIA'); // cuántas respuestas ahorraron IA
   await enviarSalida(chatId, await conVoz(chatId, r.salida, { prueba }));
@@ -512,14 +524,20 @@ const revisarSeguimientos = revisarProactivos;
 setInterval(() => revisarSeguimientos().catch((e) => E.log('⚠️  Seguimientos:', e.message)), 10 * 60_000);
 
 // ---------- Lectura de chats para el panel ----------
+// Texto que el panel muestra para cada tipo de mensaje (sin emojis: el panel pone su propio icono)
 const ETIQUETAS = {
-  image: '📷 Imagen', video: '🎥 Video', audio: '🎵 Audio', ptt: '🎤 Nota de voz', document: '📄 Documento',
-  sticker: '💟 Sticker', location: '📍 Ubicación', vcard: '👤 Contacto', multi_vcard: '👥 Contactos',
-  revoked: '🚫 Mensaje eliminado', call_log: '📞 Llamada', poll_creation: '📊 Encuesta', gif: '🎞️ GIF',
+  image: 'Imagen', video: 'Video', audio: 'Audio', ptt: 'Nota de voz', document: 'Documento',
+  sticker: 'Sticker', location: 'Ubicación', vcard: 'Contacto', multi_vcard: 'Contactos',
+  revoked: 'Mensaje eliminado', call_log: 'Llamada', poll_creation: 'Encuesta', gif: 'GIF',
+  // Eventos internos de WhatsApp que antes salían como "[gp2]", "[ciphertext]"…
+  gp2: 'Actividad del grupo', notification: 'Notificación', notification_template: 'Notificación',
+  e2e_notification: 'Aviso de seguridad', ciphertext: 'Esperando el mensaje', protocol: 'Mensaje del sistema',
+  reaction: 'Reacción', list: 'Lista', list_response: 'Respuesta a una lista', buttons_response: 'Respuesta',
+  template_button_reply: 'Respuesta', interactive: 'Mensaje interactivo', pinned_message: 'Mensaje fijado',
 };
 function textoMensaje(m) {
   const etiqueta = ETIQUETAS[m.type];
-  if (!etiqueta) return m.body || `[${m.type}]`;
+  if (!etiqueta) return m.body || 'Mensaje';
   const conLeyenda = ['image', 'video', 'document', 'gif'].includes(m.type) && m.body && m.body.length < 1000;
   return conLeyenda ? `${etiqueta}: ${m.body}` : etiqueta;
 }

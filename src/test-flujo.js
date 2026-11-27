@@ -80,4 +80,22 @@ f = fichaInicial([catalogo.find((x) => x.id === 'tienda')]);
 assert.match(f, /Tiendas virtuales/); assert.match(f, /\$800\.000 COP/); assert.match(f, /Carrito de compras/);
 assert.doesNotMatch(fichaInicial([catalogo[0]], { saludo: false }), /Hola/);
 
+// Respuestas rápidas (sin IA) y control de lo que escribe la IA
+const ultron = require('./ultron');
+const rapida = (texto, historial = []) => ultron.respuestaRapida(texto, historial, { conIA: true })?.salida.at(-1).texto;
+assert.match(rapida('cuánto cuestan sus servicios?'), /Lo que hacemos/);
+assert.match(rapida('y una tienda virtual?'), /Tiendas virtuales/);
+assert.match(rapida('y cuánto vale?', [{ role: 'user', content: 'quiero un sistema de inventario' }]), /Sistemas de inventario/);
+assert.match(rapida('qué formas de pago tienen?'), /Por etapas/);
+assert.match(rapida('Hola?'), /Hola de nuevo/);
+assert.match(rapida('quiero hablar con una persona'), /asesor/);
+assert.strictEqual(rapida('tengo una tienda de ropa y vendo por instagram, me sirve para manejar tallas y colores?'), undefined); // → IA
+const revisar = (iaTexto, cliente = '') => ultron.revisarRespuestaIA([{ tipo: 'texto', texto: iaTexto }], cliente, []);
+assert.ok(revisar('La web te cuesta $350.000 COP.').motivo, 'precio inventado');
+assert.ok(revisar('Te doy un 20% de descuento.').motivo, 'descuento inventado');
+assert.strictEqual(revisar('Las páginas web están desde *$400.000 COP*.').motivo, null);
+assert.strictEqual(revisar('La tienda sale desde 800 mil. Paga 50% al iniciar.').motivo, null);
+assert.strictEqual(revisar('Con tus 2 millones arrancamos.', 'tengo 2 millones').motivo, null);
+assert.strictEqual(revisar('Incluye diseño. También el formul').salida[0].texto, 'Incluye diseño.');
+
 console.log('✅ Todas las pruebas del flujo pasaron');

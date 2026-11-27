@@ -607,15 +607,45 @@ function respuestaRapida(texto, historial, ctx = {}) {
 
   // 3) Preguntas frecuentes con respuesta exacta (solo mensajes cortos y directos)
   if (palabras <= 12) {
+    const sigue = conIA ? '¿Qué proyecto tienes en mente?' : 'Escribe *menu* para ver todas las opciones.';
+    // Saludo en medio de la conversación: no hace falta la IA ni repetir la ficha
+    if (/^(hola+|holi|buenas?( tardes| noches| dias)?|buen dia|buenos dias|hey|ola|saludos|que tal)( [a-z]+)?$/.test(t)) {
+      return fija(`¡Hola de nuevo! 👋 ¿En qué te ayudo? ${conIA ? 'Cuéntame qué necesitas.' : 'Escribe *menu* para ver las opciones.'}`);
+    }
     if (/\b(formas? de pago|metodos? de pago|como (se )?paga|se puede pagar|financ|cuotas|a plazos|por etapas|pagar por partes)\b/.test(t)) return fija(textoPagos(config));
-    if (/\b(horario|a que hora|atienden|correo electronico|email|datos de contacto|numero de contacto|donde (estan|quedan))\b/.test(t) && !servicios.length) return fija(textoContacto(config));
-    if (/\b(catalogo|portafolio|brochure|todos (los|sus) servicios|que servicios|que hacen|que ofrecen)\b/.test(t)) {
+    // Ejemplos de trabajos: el portafolio (va antes que el catálogo)
+    const web = config.contacto?.web;
+    if (web && /\b(ejemplos?|portafolio|trabajos (anteriores|realizados|hechos)|proyectos (anteriores|realizados|hechos)|muestras?)\b/.test(t)) {
+      return fija(`Puedes ver nuestros trabajos aquí: ${web} 🌐\n\n¿Te armamos una *demo gratis de ${dias} días* para que veas cómo quedaría *tu* proyecto?`);
+    }
+    const cobertura = String(config.cobertura || '').trim();
+    if (cobertura && /\b(donde (estan|quedan|son|se ubican)|ubicad[oa]s?|ubicacion|que ciudad|presencial|otro pais|otros paises|atienden en|trabajan en|de donde son)\b/.test(t)) {
+      return fija(`Trabajamos con clientes de ${cobertura} 🌎. El asesor te confirma cómo coordinamos tu proyecto según tu ciudad. ${sigue}`);
+    }
+    if (/\b(horario|a que hora|atienden|correo electronico|email|datos de contacto|numero de contacto)\b/.test(t) && !servicios.length) return fija(textoContacto(config));
+    if (/\b(catalogo|brochure|todos (los|sus) servicios|que servicios|que hacen|que ofrecen)\b/.test(t)) {
       return fija(`Aquí tienes nuestro catálogo 📂. ¿Cuál de estos servicios te sirve para tu negocio? Si me cuentas a qué te dedicas, te recomiendo el ideal.`, [{ tipo: 'catalogo' }]);
     }
-    const preguntaPrecio = /\b(precio|precios|cuanto|valor|vale|cuesta|costo|cobran|tarifa|incluye)\b/.test(t);
-    if (servicios.length && (preguntaPrecio || palabras <= 6)) { // "y un sistema de inventario?"
-      return fija(fichaInicial(servicios.slice(0, 2), { conIA, saludo: false }));
+    if (/\b(como (empezamos|empiezo|inicio|iniciamos|arrancamos|funciona el proceso|es el proceso)|que necesito para (empezar|iniciar|arrancar)|cual es el proceso|pasos para)\b/.test(t)) {
+      return fija(`Es muy sencillo:\n1️⃣ Me cuentas tu idea: qué necesitas y para qué negocio.\n2️⃣ El asesor te envía la cotización con el alcance, el precio y el tiempo.\n3️⃣ Eliges la forma de pago (${formasPago(config).map((f) => f.split(':')[0].toLowerCase()).join(', ')}) y arrancamos.\n\n¿Me cuentas qué necesitas?`);
     }
+    const preguntaTiempo = /\b(cuanto (tiempo )?(se )?(demora|demoran|tarda|tardan)|en cuanto tiempo|tiempo de entrega|cuanto se (demora|tarda)n?)\b/.test(t);
+    const preguntaPrecio = preguntaTiempo || /\b(precio|precios|cuanto|valor|vale|valen|cuesta|cuestan|costo|cobran|tarifa|incluye)\b/.test(t);
+    // "¿Y cuánto vale?" sin decir el servicio: el que se venía hablando en los últimos mensajes
+    // (solo lo que dijo el propio cliente; "¿cuánto cuestan sus servicios?" es una pregunta general)
+    const general = /\b(servicios|precios|todo|todos|ustedes)\b/.test(t);
+    const anteriorCliente = [...historial].reverse().find((h) => h.role === 'user')?.content || '';
+    const delContexto = servicios.length ? servicios : preguntaPrecio && palabras <= 5 && !general
+      ? serviciosMencionados(anteriorCliente).slice(0, 1) : [];
+    if (delContexto.length && (preguntaPrecio || palabras <= 6)) { // "y un sistema de inventario?"
+      return fija(fichaInicial(delContexto.slice(0, 2), { conIA, saludo: false }));
+    }
+    if (preguntaTiempo) {
+      const { catalogo } = cargarDatos();
+      const conTiempo = catalogo.filter((s) => s.tiempo && !/segun/i.test(normalizar(s.tiempo)));
+      if (conTiempo.length) return fija(`⏱️ *Tiempos estimados*\n${conTiempo.map((s) => `• ${s.nombre}: ${s.tiempo}`).join('\n')}\n\nLos demás dependen del alcance y el asesor te los confirma en la cotización. ${sigue}`);
+    }
+    if (preguntaPrecio) return fija(`${fichaInicial([], { conIA, saludo: false })}`); // "¿cuánto cuestan sus servicios?"
     if (!(config.tecnologias || '').trim() && RX_TECNOLOGIA.test(t) && !servicios.length) {
       return fija('Trabajamos con tecnologías modernas y elegimos la más adecuada según lo que necesita tu proyecto. El asesor te confirma el detalle técnico. ¿Qué proyecto tienes en mente para recomendarte la mejor opción?');
     }
@@ -624,6 +654,57 @@ function respuestaRapida(texto, historial, ctx = {}) {
     }
   }
   return null;
+}
+
+// ---------- Control de calidad de lo que escribe la IA ----------
+// Montos en el texto: "$400.000", "400.000", "1,5 millones", "800 mil" (solo cifras de precio, ≥ 10.000)
+function montos(texto) {
+  const t = normalizar(texto);
+  const res = [];
+  for (const m of t.matchAll(/(\d+(?:[.,]\d+)?)\s?(millones|millon|mil)\b/g)) {
+    res.push(Math.round(parseFloat(m[1].replace(',', '.')) * (m[2] === 'mil' ? 1e3 : 1e6)));
+  }
+  const sinPalabras = t.replace(/(\d+(?:[.,]\d+)?)\s?(millones|millon|mil)\b/g, ' ');
+  for (const m of sinPalabras.matchAll(/\$?\s?(\d{1,3}(?:[.,]\d{3})+|\d{5,})(?![\d%])/g)) res.push(Number(m[1].replace(/[.,]/g, '')));
+  return res.filter((n) => n >= 10_000);
+}
+
+/**
+ * Revisa la respuesta de la IA antes de enviarla. Si inventa un precio o un porcentaje (descuento)
+ * que no existe, se reemplaza por la ficha exacta del catálogo. También quita restos de instrucciones
+ * internas y recorta respuestas cortadas o demasiado largas para WhatsApp.
+ */
+function revisarRespuestaIA(salida, textoCliente, historial) {
+  const { config, catalogo } = cargarDatos();
+  const precios = new Set(catalogo.map((s) => s.precioDesde));
+  // Cifras que dijo el propio cliente (su presupuesto) también son válidas
+  for (const n of montos([textoCliente, ...historial.filter((h) => h.role === 'user').map((h) => h.content)].join(' '))) precios.add(n);
+  const porcentajes = new Set([50, 100, ...(Number(config.ventas?.descuentoMaximo) > 0 ? [Number(config.ventas.descuentoMaximo)] : [])]);
+  let motivo = null;
+  const revisada = salida.map((s) => {
+    if (s.tipo !== 'texto') return s;
+    let t = s.texto.replace(/\[?\s*informaci[oó]n interna[^\]\n]*\]?/gi, '').trim();
+    if (montos(t).some((n) => !precios.has(n))) motivo = 'precio que no está en el catálogo';
+    if ([...t.matchAll(/(\d{1,3})\s?%/g)].some((m) => !porcentajes.has(Number(m[1])))) motivo ||= 'porcentaje no autorizado';
+    // Respuesta cortada a mitad de frase (límite de tokens) o demasiado larga: hasta la última frase completa
+    const corta = (txt, max) => {
+      const parte = txt.slice(0, max);
+      const fin = Math.max(parte.lastIndexOf('. '), parte.lastIndexOf('! '), parte.lastIndexOf('? '), parte.lastIndexOf('.\n'), parte.lastIndexOf('?\n'), parte.lastIndexOf('!\n'));
+      return fin > max * 0.4 ? parte.slice(0, fin + 1).trim() : txt;
+    };
+    if (t.length > 900) t = corta(t, 900);
+    if (!/[.!?…)*\u{1F300}-\u{1FAFF}☀-➿]\s*$/u.test(t)) t = corta(t + ' ', t.length + 1);
+    return { ...s, texto: t };
+  }).filter((s) => s.tipo !== 'texto' || s.texto);
+  if (!motivo) return { salida: revisada, motivo: null };
+  // Reemplazo seguro: la ficha exacta del servicio del que se habla (o el resumen general)
+  const textoIA = salida.filter((s) => s.tipo === 'texto').map((s) => s.texto).join(' ');
+  const servicios = serviciosMencionados(textoCliente).length ? serviciosMencionados(textoCliente) : serviciosMencionados(textoIA);
+  const { fichaInicial } = require('./flujo');
+  return {
+    salida: [...salida.filter((s) => s.tipo !== 'texto'), { tipo: 'texto', texto: `Te comparto los valores exactos 👇\n\n${fichaInicial(servicios.slice(0, 2), { saludo: false })}` }],
+    motivo,
+  };
 }
 
 async function conversar(historial, texto, ctx = {}) {
@@ -654,9 +735,11 @@ async function conversar(historial, texto, ctx = {}) {
     ({ salida, efectos } = est);
   }
 
+  const revision = revisarRespuestaIA(salida, texto || '', base.slice(0, -1));
+  salida = revision.salida;
   if (!salida.some((s) => s.tipo === 'texto')) throw new Error('Ultron no generó respuesta');
   const respuestaTexto = salida.map((s) => (s.tipo === 'texto' ? s.texto : '[Se envió el catálogo: imagen y PDF]')).join('\n');
-  return { salida, respuestaTexto, ...efectos };
+  return { salida, respuestaTexto, corregida: revision.motivo, ...efectos };
 }
 
 /**
@@ -704,4 +787,4 @@ async function probarClave(proveedor = 'claude') {
   return r.content.some((b) => b.type === 'text');
 }
 
-module.exports = { conversar, respuestaRapida, serviciosMencionados, mensajeProactivo, calentarLocal, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };
+module.exports = { conversar, respuestaRapida, revisarRespuestaIA, montos, serviciosMencionados, mensajeProactivo, calentarLocal, disponible, estadoClaves, guardarClave, probarClave, promptSistema, MODELO, MODELO_HF };

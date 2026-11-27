@@ -88,8 +88,7 @@ function fichaInicial(servicios = [], { conIA = true, saludo = true } = {}, dato
     return precios.length ? `• ${titulo}: desde *${precio(Math.min(...precios), config.moneda)}*` : null;
   }).filter(Boolean);
   return [
-    `¡Hola! 👋 Soy *${nombre}*, asesor virtual de *${marca}*. Creamos software para que tu negocio venda más y trabaje menos.`,
-    ``,
+    ...(saludo ? [`¡Hola! 👋 Soy *${nombre}*, asesor virtual de *${marca}*. Creamos software para que tu negocio venda más y trabaje menos.`, ``] : []),
     `💼 *Lo que hacemos*`,
     ...(lineas.length ? lineas : catalogo.slice(0, 6).map((s) => `• ${s.nombre}: desde *${precio(s.precioDesde, config.moneda)}*`)),
     ``,
